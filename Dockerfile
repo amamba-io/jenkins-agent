@@ -12,7 +12,7 @@ COPY remove-bundle-plugins.groovy /
 WORKDIR /
 RUN jcli cwp --install-artifacts --config-path formula.yaml
 
-FROM jenkins/jenkins:2.413
-COPY --from=build /tmp/output/target/daocloud-jenkins-1.0-SNAPSHOT.war /usr/share/jenkins/jenkins.war
+FROM jenkins/jenkins:2.443
+COPY --from=build /tmp/output/target/jenkins-1.0-SNAPSHOT.war /usr/share/jenkins/jenkins.war
 ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
 ENTRYPOINT ["tini", "--", "/usr/local/bin/jenkins.sh"]
