@@ -19,8 +19,8 @@ Master:
     # Name of the Kubernetes scheduler to use
     SchedulerName: ""
   Name: jenkins-master
-  Image: "amamba-io/jenkins"
-  ImageTag: "latest-2.413"
+  Image: "amambadev/jenkins"
+  ImageTag: "latest-2.443"
   ImagePullPolicy: "IfNotPresent"
   ImagePullSecret: ""
   Component: "jenkins-master"

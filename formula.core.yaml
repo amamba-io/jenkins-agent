@@ -1,0 +1,123 @@
+bundle:
+  groupId: io.amamba.jenkins
+  artifactId: jenkins
+  description: Jenkins formula for amamba
+  vendor: amamba.io
+#buildSettings:
+#  docker:
+#    base: jenkins/jenkins:2.249.1
+#    tag: daocloud/jenkins:v0.0.2-2.249.1
+#    build: true
+war:
+  groupId: org.jenkins-ci.main
+  artifactId: jenkins-war
+  source:
+    version: 2.443
+plugins:
+  - groupId: io.jenkins
+    artifactId: configuration-as-code
+    source:
+      version: 1670.v564dc8b_982d0
+  - groupId: io.jenkins.blueocean
+    artifactId: blueocean
+    source:
+      version: 1.27.11
+  - groupId: org.jenkins-ci.plugins
+    artifactId: antisamy-markup-formatter
+    source:
+      version: 155.v795fb_8702324
+  - groupId: org.jenkins-ci.plugins
+    artifactId: build-timeout
+    source:
+      version: 1.31
+  - groupId: org.csanchez.jenkins.plugins
+    artifactId: kubernetes
+    source:
+      version: 4029.v5712230ccb_f8
+  - groupId: org.jenkins-ci.plugins
+    artifactId: generic-webhook-trigger
+    source:
+      version: 1.86.3
+  - groupId: org.jenkins-ci.plugins
+    artifactId: localization-zh-cn
+    source:
+      version: 1.0.24
+  - groupId: org.jenkinsci.plugins
+    artifactId: managed-scripts
+    source:
+      version: 1.5.6
+  - groupId: org.jenkins-ci.plugins
+    artifactId: pam-auth
+    source:
+      version: 1.10
+  - groupId: org.jenkins-ci.plugins
+    artifactId: javadoc
+    source:
+      version: 233.vdc1a_ec702cff
+  - groupId: org.jenkins-ci.plugins
+    artifactId: junit
+    source:
+      version: 1240.vf9529b_881428
+  - groupId: org.jenkins-ci.plugins
+    artifactId: ldap
+    source:
+      version: 682.v7b_544c9d1512
+  - groupId: org.jenkins-ci.plugins
+    artifactId: matrix-auth
+    source:
+      version: 3.1.9
+  - groupId: org.jenkins-ci.plugins
+    artifactId: role-strategy
+    source:
+      version: 633.v836e5b_3e80a_5
+  - groupId: org.jenkins-ci.plugins
+    artifactId: sonar
+    source:
+      version: 2.15
+  - groupId: org.jenkins-ci.plugins
+    artifactId: mailer
+    source:
+      version: 463.vedf8358e006b_
+  - groupId: org.jenkins-ci.plugins
+    artifactId: parameterized-trigger
+    source:
+      version: 2.46
+  - groupId: org.jenkins-ci.plugins
+    artifactId: run-condition
+    source:
+      version: 1.6
+  - groupId: org.jenkins-ci.plugins
+    artifactId: subversion
+    source:
+      version: 2.17.2
+  - groupId: org.jenkins-ci.plugins.pipeline-stage-view
+    artifactId: pipeline-stage-view
+    source:
+      version: 2.33
+  - groupId: org.jenkins-ci.plugins
+    artifactId: prometheus
+    source:
+      version: 2.2.3
+  - groupId: io.jenkins.plugins
+    artifactId: generic-event
+    source:
+      version: 41.v2b15d4dfb893
+  - groupId: io.jenkins.plugins
+    artifactId: file-parameters
+    source:
+      version: 285.287.v4b_7b_29d3469d
+  - groupId: org.jenkins-ci.plugins
+    artifactId: jobcacher
+    source:
+      version: 432.vb_b_fc2291c917
+  - groupId: org.jenkins-ci.plugins
+    artifactId: support-core
+    source:
+      version: 1371.v709cef748b_d0
+systemProperties:
+  { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
+groovyHooks:
+  - type: "init"
+    id: "bundle-plugins"
+    source:
+      dir: remove-bundle-plugins.groovy
