@@ -43,7 +43,7 @@ jobs:
           provenance: false
           platforms: ${{ inputs.platforms }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-2.413
+            ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-2.443
             ghcr.io/${{ github.repository_owner }}/jenkins:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -490,6 +490,18 @@ plugins:
   artifactId: jobcacher
   source:
     version: 432.vb_b_fc2291c917
+- groupId: org.jenkins-ci.plugins
+  artifactId: aws-credentials
+  source:
+    version: 218.v1b_e9466ec5da_
+- groupId: org.jenkins-ci.plugins.aws-java-sdk
+  artifactId: aws-java-sdk-minimal
+  source:
+    version: 1.12.633-430.vf9a_e567a_244f
+- groupId: org.jenkins-ci.plugins
+  artifactId: jackson2-api
+  source:
+    version: 2.16.1-373.ve709c6871598
 - groupId: io.jenkins.plugins
   artifactId: joda-time-api
   source:
@@ -514,6 +526,22 @@ plugins:
   artifactId: support-core
   source:
     version: 1371.v709cef748b_d0
+- groupId: org.jenkins-ci.plugins
+  artifactId: ldap
+  source:
+    version: 711.vb_d1a_491714dc
+- groupId: org.jenkins-ci.plugins
+  artifactId: cloudbees-disk-usage-simple
+  source:
+    version: 182.v62ca_0c992a_f3
+- groupId: io.jenkins.blueocean
+  artifactId: blueocean-executor-info
+  source:
+    version: 1.27.11
+- groupId: org.jenkins-ci.plugins
+  artifactId: docker-commons
+  source:
+    version: 439.va_3cb_0a_6a_fb_29
 systemProperties:
   { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
 groovyHooks:

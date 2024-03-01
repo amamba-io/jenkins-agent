@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 	"slices"
@@ -26,7 +27,11 @@ type source struct {
 	Version string `yaml:"version"`
 }
 
-func (f *formula) Update(p plugin) error {
+func (f *formula) Update(i int, p plugin) error {
+	if len(f.Plugins) <= i {
+		return errors.New("index out of range")
+	}
+	f.Plugins[i].Source.Version = p.Source.Version
 	return nil
 }
 
@@ -34,6 +39,7 @@ func (f *formula) RemovePlugins(indexes []int) error {
 	slices.Sort(indexes)
 	for i := len(indexes) - 1; i >= 0; i-- {
 		j := indexes[i]
+		log.Printf("Removed %s:%s", f.Plugins[j].ArtifactID, f.Plugins[j].Source.Version)
 		f.Plugins = append(f.Plugins[:j], f.Plugins[j+1:]...)
 	}
 	return nil
@@ -58,7 +64,7 @@ func (f *formula) Find(target plugin) *plugin {
 
 // Updates formula.yaml according to plugins.txt specified in command-line
 func main() {
-	yamlFile, err := os.ReadFile("../../formula.yaml")
+	yamlFile, err := os.ReadFile("formula.yaml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
@@ -68,7 +74,7 @@ func main() {
 		log.Fatalf("parse formula.yaml error: %v", err)
 	}
 
-	pluginsFile, err := os.ReadFile("../../plugins.yaml")
+	pluginsFile, err := os.ReadFile("plugins.yaml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
@@ -85,7 +91,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Marshal error: %v", err)
 	}
-	err = os.WriteFile("../../formula.new.yaml", data, 0644)
+	err = os.WriteFile("formula.new.yaml", data, 0644)
 	if err != nil {
 		log.Fatalf("WriteFile error: %v", err)
 	}
@@ -109,11 +115,12 @@ func Update(origin, target *formula) error {
 		dest := target.Find(plugin)
 		if dest == nil {
 			toRemove = append(toRemove, i)
-			log.Printf("Will be removed %s", plugin.ArtifactID)
 		} else {
 			if plugin.Source.Version != dest.Source.Version {
-				origin.Plugins[i].Source.Version = dest.Source.Version
 				log.Printf("Updated %s from %s to %s", plugin.ArtifactID, plugin.Source.Version, dest.Source.Version)
+				if err := origin.Update(i, *dest); err != nil {
+					return err
+				}
 			}
 		}
 	}
