@@ -2,7 +2,7 @@ global:
   imageRegistry: my-company.com
 
 Master:
-  ImageTag: latest-2.413
+  ImageTag: latest-2.502
 
 trace:
   enabled: true

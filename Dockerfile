@@ -10,9 +10,9 @@ RUN mv /tmp/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin
 COPY formula.yaml /
 COPY remove-bundle-plugins.groovy /
 WORKDIR /
-RUN jcli cwp --install-artifacts --config-path formula.yaml
+RUN jcli cwp --install-artifacts --config-path formula.yaml --batch-mode --show-progress
 
-FROM jenkins/jenkins:2.443
+FROM jenkins/jenkins:2.502
 COPY --from=build /tmp/output/target/jenkins-1.0-SNAPSHOT.war /usr/share/jenkins/jenkins.war
 ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
 ENTRYPOINT ["tini", "--", "/usr/local/bin/jenkins.sh"]

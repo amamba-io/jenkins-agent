@@ -14,7 +14,7 @@ deny[msg] {
 
 is_copy_default_config_image(container) if {
 	container.name == "copy-default-config"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.413"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
 }
 
 is_instrumentation_image(container) if {
@@ -33,7 +33,7 @@ deny[msg] {
 
 is_jenkins_image(container) if {
 	container.name == "jenkins"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.413"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
 }
 
 is_event_proxy_image(container) if {
@@ -53,7 +53,7 @@ deny[msg] {
 
 is_jnlp_image(container) if {
 	container.name == "jnlp"
-	container.image == "ghcr.io/amamba-io/inbound-agent:4.10-2"
+	container.image == "ghcr.io/amamba-io/inbound-agent:jdk21"
 }
 
 is_agent_image(container) if {

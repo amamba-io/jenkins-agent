@@ -7,12 +7,12 @@ Master:
     # Name of the Kubernetes scheduler to use
     SchedulerName: ""
   Name: jenkins-master
-  Image: "amambadev/jenkins"
-  ImageTag: "${VERSION}-2.443"
+  Image: "amamba-io/jenkins"
+  ImageTag: "${VERSION}-2.502"
 
 Agent:
   Image: "amamba-io/inbound-agent"
-  ImageTag: 4.10-2
+  ImageTag: jdk21
   Builder:
     Base:
       Image: amamba-io/jenkins-agent-base
