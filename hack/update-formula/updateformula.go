@@ -1,9 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"slices"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -26,7 +31,11 @@ type source struct {
 	Version string `yaml:"version"`
 }
 
-func (f *formula) Update(p plugin) error {
+func (f *formula) Update(i int, p plugin) error {
+	if len(f.Plugins) <= i {
+		return errors.New("index out of range")
+	}
+	f.Plugins[i].Source.Version = p.Source.Version
 	return nil
 }
 
@@ -34,6 +43,7 @@ func (f *formula) RemovePlugins(indexes []int) error {
 	slices.Sort(indexes)
 	for i := len(indexes) - 1; i >= 0; i-- {
 		j := indexes[i]
+		log.Printf("Removed %s:%s", f.Plugins[j].ArtifactID, f.Plugins[j].Source.Version)
 		f.Plugins = append(f.Plugins[:j], f.Plugins[j+1:]...)
 	}
 	return nil
@@ -58,7 +68,7 @@ func (f *formula) Find(target plugin) *plugin {
 
 // Updates formula.yaml according to plugins.txt specified in command-line
 func main() {
-	yamlFile, err := os.ReadFile("../../formula.yaml")
+	yamlFile, err := os.ReadFile("formula.yaml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
@@ -68,7 +78,7 @@ func main() {
 		log.Fatalf("parse formula.yaml error: %v", err)
 	}
 
-	pluginsFile, err := os.ReadFile("../../plugins.yaml")
+	pluginsFile, err := os.ReadFile("plugins.yaml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
@@ -85,7 +95,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Marshal error: %v", err)
 	}
-	err = os.WriteFile("../../formula.new.yaml", data, 0644)
+	err = os.WriteFile("formula.new.yaml", data, 0644)
 	if err != nil {
 		log.Fatalf("WriteFile error: %v", err)
 	}
@@ -109,16 +119,26 @@ func Update(origin, target *formula) error {
 		dest := target.Find(plugin)
 		if dest == nil {
 			toRemove = append(toRemove, i)
-			log.Printf("Will be removed %s", plugin.ArtifactID)
 		} else {
 			if plugin.Source.Version != dest.Source.Version {
-				origin.Plugins[i].Source.Version = dest.Source.Version
 				log.Printf("Updated %s from %s to %s", plugin.ArtifactID, plugin.Source.Version, dest.Source.Version)
+				if err := origin.Update(i, *dest); err != nil {
+					return err
+				}
 			}
 		}
 	}
 	for _, plugin := range target.Plugins {
 		if origin.Find(plugin) == nil {
+			if plugin.GroupID == "" {
+				groupID := getPluginGroupID(plugin.ArtifactID)
+				if groupID == "" {
+					log.Printf("Warning: %s:%s groupID not found, place visit 'https://plugins.jenkins.io/<ArtifactID>/dependencies/'", plugin.ArtifactID, plugin.Source.Version)
+				} else {
+					plugin.GroupID = groupID
+				}
+			}
+
 			err := origin.Append(plugin)
 			if err != nil {
 				return err
@@ -128,4 +148,47 @@ func Update(origin, target *formula) error {
 	}
 	err := origin.RemovePlugins(toRemove)
 	return err
+}
+
+func getPluginGroupID(artifactID string) string {
+	pluginSearchUrl := "https://plugins.jenkins.io/page-data/%s/dependencies/page-data.json"
+	url := fmt.Sprintf(pluginSearchUrl, artifactID)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return ""
+	}
+
+	res, err := http.DefaultClient.Do(request)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return ""
+	}
+
+	defer res.Body.Close()
+
+	var resp PluginSearchResp
+	err = json.NewDecoder(res.Body).Decode(&resp)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return ""
+	}
+
+	grv := resp.Result.Data.JenkinsPlugin.Gav
+	split := strings.Split(grv, ":")
+	if len(split) != 3 {
+		log.Printf("Error parse group %s for %s", grv, artifactID)
+		return ""
+	}
+	return split[0]
+}
+
+type PluginSearchResp struct {
+	Result struct {
+		Data struct {
+			JenkinsPlugin struct {
+				Gav string `json:"gav"`
+			} `json:"jenkinsPlugin"`
+		} `json:"data"`
+	} `json:"result"`
 }

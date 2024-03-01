@@ -3,45 +3,40 @@ bundle:
   artifactId: jenkins
   description: Jenkins formula for amamba
   vendor: amamba.io
-#buildSettings:
-#  docker:
-#    base: jenkins/jenkins:2.249.1
-#    tag: daocloud/jenkins:v0.0.2-2.249.1
-#    build: true
 war:
   groupId: org.jenkins-ci.main
   artifactId: jenkins-war
   source:
-    version: 2.443
+    version: 2.502
 plugins:
   - groupId: io.jenkins
     artifactId: configuration-as-code
     source:
-      version: 1670.v564dc8b_982d0
+      version: 1947.v7d33fe23569c
   - groupId: io.jenkins.blueocean
     artifactId: blueocean
     source:
-      version: 1.27.11
+      version: 1.27.17
   - groupId: org.jenkins-ci.plugins
     artifactId: antisamy-markup-formatter
     source:
-      version: 155.v795fb_8702324
+      version: 173.v680e3a_b_69ff3
   - groupId: org.jenkins-ci.plugins
     artifactId: build-timeout
     source:
-      version: 1.31
+      version: 1.37
   - groupId: org.csanchez.jenkins.plugins
     artifactId: kubernetes
     source:
-      version: 4029.v5712230ccb_f8
+      version: 4324.vfec199a_33512
   - groupId: org.jenkins-ci.plugins
     artifactId: generic-webhook-trigger
     source:
-      version: 1.86.3
+      version: 2.3.1
   - groupId: org.jenkins-ci.plugins
     artifactId: localization-zh-cn
     source:
-      version: 1.0.24
+      version: 371.v23851f835d6b_
   - groupId: org.jenkinsci.plugins
     artifactId: managed-scripts
     source:
@@ -49,71 +44,79 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: pam-auth
     source:
-      version: 1.10
+      version: 1.12
   - groupId: org.jenkins-ci.plugins
     artifactId: javadoc
     source:
-      version: 233.vdc1a_ec702cff
+      version: 310.v032f3f16b_0f8
   - groupId: org.jenkins-ci.plugins
     artifactId: junit
     source:
-      version: 1240.vf9529b_881428
+      version: 1319.v000471ca_e5e2
   - groupId: org.jenkins-ci.plugins
     artifactId: ldap
     source:
-      version: 682.v7b_544c9d1512
+      version: 780.vcb_33c9a_e4332
   - groupId: org.jenkins-ci.plugins
     artifactId: matrix-auth
     source:
-      version: 3.1.9
+      version: 3.2.6
   - groupId: org.jenkins-ci.plugins
     artifactId: role-strategy
     source:
-      version: 633.v836e5b_3e80a_5
+      version: 756.v978cb_392eb_d3
   - groupId: org.jenkins-ci.plugins
     artifactId: sonar
     source:
-      version: 2.15
+      version: 2.18
   - groupId: org.jenkins-ci.plugins
     artifactId: mailer
     source:
-      version: 463.vedf8358e006b_
+      version: 489.vd4b_25144138f
   - groupId: org.jenkins-ci.plugins
     artifactId: parameterized-trigger
     source:
-      version: 2.46
+      version: 840.v3c7d4a_a_5e6c7
   - groupId: org.jenkins-ci.plugins
     artifactId: run-condition
     source:
-      version: 1.6
+      version: 243.v3c3f94e46a_8b_
   - groupId: org.jenkins-ci.plugins
     artifactId: subversion
     source:
-      version: 2.17.2
+      version: 1287.vd2d507146906
   - groupId: org.jenkins-ci.plugins.pipeline-stage-view
     artifactId: pipeline-stage-view
     source:
-      version: 2.33
+      version: 2.37
   - groupId: org.jenkins-ci.plugins
     artifactId: prometheus
     source:
-      version: 2.2.3
+      version: 819.v50953a_c560dd
   - groupId: io.jenkins.plugins
     artifactId: generic-event
     source:
-      version: 41.v2b15d4dfb893
+      version: 45.v2ae6cdb521eb
   - groupId: io.jenkins.plugins
     artifactId: file-parameters
     source:
-      version: 285.287.v4b_7b_29d3469d
-  - groupId: org.jenkins-ci.plugins
-    artifactId: jobcacher
-    source:
-      version: 432.vb_b_fc2291c917
+      version: 367.vc2cc39fb_b_593
   - groupId: org.jenkins-ci.plugins
     artifactId: support-core
     source:
-      version: 1371.v709cef748b_d0
+      version: 1692.v61f53ff4a_63b_
+#  - groupId: org.jenkins-ci.plugins
+#    artifactId: cloudbees-disk-usage-simple
+#    source:
+#      version: 239.v6a_f1a_c1c8046
+#  - groupId: org.jenkins-ci.plugins
+#    artifactId: cloudbees-bitbucket-branch-source
+#    source:
+#      version: 935.1.3
+#  - groupId: org.jenkins-ci.plugins
+#    artifactId: cloudbees-folder
+#    source:
+#      version: 6.999.v42253c105443
 systemProperties:
   { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
 groovyHooks:

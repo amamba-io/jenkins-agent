@@ -18,6 +18,9 @@ jobs:
   # currently, building Jenkins images across platforms takes about half an hour, while building only for the AMD platform takes 15 minutes.
   build-jenkins:
     runs-on: ubuntu-24.04
+    env:
+      JENKINS-VERSION: 2.502
+      INBOUND-AGENT-VERSION: jdk21
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -32,7 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: sync jnlp image
-        run: skopeo copy -f oci --multi-arch all docker://docker.io/jenkins/inbound-agent:4.10-2 docker://ghcr.io/${{ github.repository_owner }}/inbound-agent:4.10-2
+        run: skopeo copy -f oci --multi-arch all docker://docker.io/jenkins/inbound-agent:${{ env.INBOUND-AGENT-VERSION }} docker://ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ env.INBOUND-AGENT-VERSION }}
       - name: build jenkins
         uses: docker/build-push-action@v6
         with:
@@ -43,14 +46,14 @@ jobs:
           provenance: false
           platforms: ${{ inputs.platforms }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-2.413
+            ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-${{ env.JENKINS-VERSION }}
             ghcr.io/${{ github.repository_owner }}/jenkins:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Convert Image to OCI Format
         run: |
-          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-2.413 docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-2.413
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-${{ env.JENKINS-VERSION }} docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-${{ env.JENKINS-VERSION }}
           skopeo copy -f oci  --multi-arch all --retry-times 3 docker://ghcr.io/${{ github.repository_owner }}/jenkins:latest docker://ghcr.io/${{ github.repository_owner }}/jenkins:latest
           
-          skopeo inspect docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-2.413 | jq ".LayersData[0].MIMEType" | grep "oci" || {  echo "Error: ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-2.413 is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-${{ env.JENKINS-VERSION }} | jq ".LayersData[0].MIMEType" | grep "oci" || {  echo "Error: ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-${{ env.JENKINS-VERSION }} is not in oci format" ; exit 1 ;}
           skopeo inspect docker://ghcr.io/${{ github.repository_owner }}/jenkins:latest | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ghcr.io/${{ github.repository_owner }}/jenkins:latest is not in oci format" ; exit 1 ;}
