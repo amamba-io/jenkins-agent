@@ -182,3 +182,24 @@ rateLimiterConfig: {{ toYaml .rateLimiterConfig | nindent 2 }}
 {{- define "charts.version" -}}
     {{- printf .Chart.Version |replace "+" "-" -}}
 {{- end -}}
+
+{{- define "jenkins.casc.globalSharedLib" -}}
+globalLibraries:
+  libraries:
+{{- range $index, $lib := .Values.Master.GlobalPipelineLibraries.libraries }}
+  - name: {{ $lib.name }}
+{{- if $lib.defaultVersion }}
+    defaultVersion: {{ $lib.defaultVersion }}
+{{- end }}
+    implicit: {{ $lib.implicit }}
+    retriever:
+      modernSCM:
+        libraryPath: {{ $lib.libraryPath }}
+        scm:
+          git:
+            remote: {{ $lib.remote }}
+{{- if $lib.credentialsId }}
+            credentialsId: {{ $lib.credentialsId }}
+{{- end }}
+{{- end }}
+{{- end }}

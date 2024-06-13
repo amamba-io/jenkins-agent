@@ -75,10 +75,6 @@ plugins:
     source:
       version: 1.27.4
   - groupId: io.jenkins.blueocean
-    artifactId: blueocean-jira
-    source:
-      version: 1.27.4
-  - groupId: io.jenkins.blueocean
     artifactId: blueocean-personalization
     source:
       version: 1.27.4

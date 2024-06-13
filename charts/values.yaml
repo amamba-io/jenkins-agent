@@ -307,6 +307,17 @@ Master:
     #   hosts:
     #     - jenkins.cluster.local
 
+  GlobalPipelineLibraries:
+    enabled: false
+    libraries:
+    -  name: amamba-shared-lib
+       defaultVersion: "main"
+       implicit: true
+       allowVersionOverride: true
+       remote: "https://github.com/amamba-io/amamba-shared-lib.git"
+       credentialsId: ""
+       libraryPath: "./"
+
 Agent:
   Enabled: true
   Image: "jenkins/inbound-agent"
