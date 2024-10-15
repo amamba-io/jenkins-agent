@@ -7,41 +7,67 @@ rpm_packages=(gcc-c++ openssl-devel glibc-common)
 dep_packages=(g++ libcurl4-openssl-dev libssl-dev locales)
 count=0
 
-function message() {
-  echo -e "\033[32m$(date '+%Y-%m-%d %H:%M:%S')  $1\033[0m"
-}
-
-function error_message() {
-  echo -e "\033[31m$(date '+%Y-%m-%d %H:%M:%S')  $1\033[0m"
-}
+source hack/util.sh
 
 # check the command is executable
 function check_command() {
   if ! command -v "${1}" &> /dev/null; then
-    error_message "${1} is not executable"
+    util::message "red" "${1} is not executable"
     count=$((count+1))
   else
-    message "${1} is executable"
+    util::message "green" "${1} is executable"
   fi
 }
 
 # centos: check the package is installed in rpm
 function check_rpm() {
   if ! rpm -q "${1}" &> /dev/null; then
-    error_message "${1} is not installed in rpm"
+    util::message "red" "${1} is not installed in rpm"
     count=$((count+1))
   else
-    message "${1} is installed in rpm"
+    util::message "green" "${1} is installed in rpm"
   fi
 }
 
 # ubuntu: check the package is installed in dep
 function check_dep() {
   if ! dpkg -l | grep "$1" &> /dev/null; then
-    error_message "$1 package is not installed in dep"
+    util::message "red" "${1} package is not installed in dep"
     count=$((count+1))
   else
-    message "${1} is installed in dep"
+    util::message "green" "${1} is installed in dep"
+  fi
+}
+
+function check_base_tools() {
+  # git
+  if ! git clone https://github.com/amamba-io/jenkins-agent.git; then
+    util::message "red" "git: ❌"
+    count=$((count+1))
+  else
+    util::message "green" "git: ✅"
+  fi
+
+  # vim
+  if ! touch test.txt && vim -c "normal! GoThis is test txt" -c "wq" test.txt; then
+    util::message "red" "vim: ❌"
+    count=$((count+1))
+  else
+    if ! grep -q "This is test txt" test.txt; then
+      util::message "yellow" "vim: ⚠️"
+    else
+      util::message "green" "vim: ✅"
+    fi
+  fi
+
+  # curl
+  http_code=$(curl -s -o /dev/null -w "%{http_code}" www.baidu.com)
+  if [ -z "${http_code}" ]; then
+    util::message "red" "curl: ❌"
+  elif [ "${http_code}" == 200 ]; then
+    util::message "green" "curl: ✅"
+  else
+    util::message "yellow" "curl: ⚠️"
   fi
 }
 

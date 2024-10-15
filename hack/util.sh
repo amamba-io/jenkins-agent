@@ -43,7 +43,7 @@ function util::cmd_must_exist {
 
 
 # util::wait_pod_ready waits for pod state becomes ready until timeout.
-# Parmeters:
+# Parameters:
 #  - $1: pod label, such as "app=etcd"
 #  - $2: pod namespace, such as "kpanda-system"
 #  - $3: time out, such as "200s"
@@ -96,7 +96,7 @@ function util::kubectl_with_retry() {
 
 # util::create_cluster creates a kubernetes cluster
 # util::create_cluster creates a kind cluster and don't wait for control plane node to be ready.
-# Parmeters:
+# Parameters:
 #  - $1: cluster name, such as "host"
 #  - $2: KUBECONFIG file, such as "/var/run/host.config"
 #  - $3: node docker image to use for booting the cluster, such as "kindest/node:v1.19.1"
@@ -114,9 +114,37 @@ function util::create_cluster() {
 }
 
 # util::delete_cluster deletes kind cluster by name
-# Parmeters:
+# Parameters:
 # - $1: cluster name, such as "host"
 function util::delete_cluster() {
   local cluster_name=${1}
   kind delete cluster --name="${cluster_name}"
+}
+
+# util::message echo different color's message
+# - $1: color code, eg. 1, 2, 3, 4 -> red, green, yellow, blue
+# - $2: want to highlight the output message
+function util::message() {
+  local color_name=${1}
+  local message=${2}
+
+  case "${color_name}" in
+    red)
+      color_code=1
+      ;;
+    green)
+      color_code=2
+      ;;
+    yellow)
+      color_code=3
+      ;;
+    blue)
+      color_code=4
+      ;;
+    *)
+      color_code=0
+      ;;
+  esac
+
+  echo -e "\033[3${color_code}m$(date '+%Y-%m-%d %H:%M:%S')  ${message}\033[0m"
 }
