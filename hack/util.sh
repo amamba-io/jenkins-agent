@@ -120,31 +120,3 @@ function util::delete_cluster() {
   local cluster_name=${1}
   kind delete cluster --name="${cluster_name}"
 }
-
-# util::message echo different color's message
-# - $1: color code, eg. 1, 2, 3, 4 -> red, green, yellow, blue
-# - $2: want to highlight the output message
-function util::message() {
-  local color_name=${1}
-  local message=${2}
-
-  case "${color_name}" in
-    red)
-      color_code=1
-      ;;
-    green)
-      color_code=2
-      ;;
-    yellow)
-      color_code=3
-      ;;
-    blue)
-      color_code=4
-      ;;
-    *)
-      color_code=0
-      ;;
-  esac
-
-  echo -e "\033[3${color_code}m$(date '+%Y-%m-%d %H:%M:%S')  ${message}\033[0m"
-}
