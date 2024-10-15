@@ -140,9 +140,12 @@ jobs:
         run: |
           AGENT_IMAGE="${{ secrets.DOCKER_USERNAME }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.distribution }}"
           echo "Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh -e AGENT_IMAGE=$AGENT_IMAGE -i $AGENT_IMAGE /bin/bash -c "
-            ./tmp/check_agent_base_tools.sh
-          "
+          docker run -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ./test/e2e/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh \
+            -v ./test/fixture/image-check/base-agent:/tmp/base-agent/ \
+            -e AGENT_IMAGE=$AGENT_IMAGE \
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_base_tools.sh"
       - name: build jenkins agent with podman
         uses: docker/build-push-action@v6
         with:
@@ -165,9 +168,11 @@ jobs:
         run: |
           AGENT_IMAGE="${{ secrets.DOCKER_USERNAME }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.distribution }}-podman"
           echo "Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh -e AGENT_IMAGE=$AGENT_IMAGE -i $AGENT_IMAGE /bin/bash -c "
-            ./tmp/check_agent_base_tools.sh
-          "
+          docker run --privileged -v ./test/e2e/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh \
+            -v ./test/fixture/image-check/base-agent:/tmp/base-agent/ \
+            -e AGENT_IMAGE=$AGENT_IMAGE \
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_base_tools.sh"
   build-deprected-agent-centos:
     needs: [build-jenkins-agent-base, init-variable]
     uses: ./.github/workflows/build_centos.yaml
@@ -229,12 +234,12 @@ jobs:
           SOFTWARE_MATRIX=nodejs-${{ matrix.version }}
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-nodejs:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+          docker run -v ./test/e2e/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./test/fixture/image-check/nodejs-agent:/tmp/nodejs-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
   build-agent-python:
     needs: [build-jenkins-agent-base, init-variable]
     strategy:
@@ -289,12 +294,12 @@ jobs:
           SOFTWARE_MATRIX=python-${{ matrix.version }}
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-python:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+          docker run -v ./test/e2e/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./test/fixture/image-check/python-agent:/tmp/python-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
   build-agent-golang:
     needs: [build-jenkins-agent-base, init-variable]
     strategy:
@@ -349,12 +354,12 @@ jobs:
           SOFTWARE_MATRIX=go-${{ matrix.version }}
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-go:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+          docker run -v ./test/e2e/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./test/fixture/image-check/go-agent:/tmp/go-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
   build-agent-maven:
     needs: [build-jenkins-agent-base, init-variable]
     strategy:
@@ -412,12 +417,12 @@ jobs:
           SOFTWARE_MATRIX=java-${{ matrix.version }}
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-maven:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+          docker run -v ./test/e2e/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./test/fixture/image-check/maven-agent:/tmp/maven-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
   validate-relok8s-images:
     needs: [build-jenkins, build-agent-maven, build-agent-golang, build-agent-python, build-agent-nodejs]
     uses: ./.github/workflows/check_relok8s.yaml
