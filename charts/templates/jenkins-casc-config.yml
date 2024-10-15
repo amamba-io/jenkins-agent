@@ -32,7 +32,7 @@ data:
                 containers:
                 - name: "base"
                   image: "{{ include "builder.image" (dict "builder" .Values.Agent.Builder.Base "root" .) -}}"
-                  command: "cat"
+                  command: "/usr/local/bin/jenkins-agent"
                   args: ""
                   ttyEnabled: true
                   privileged: {{ template "jenkins.agent.privileged" . }}
@@ -92,7 +92,7 @@ data:
                 containers:
                 - name: "nodejs"
                   image: "{{ include "builder.image" ( dict "builder" .Values.Agent.Builder.NodeJs "root" .) -}}"
-                  command: "cat"
+                  command: "/usr/local/bin/jenkins-agent"
                   args: ""
                   ttyEnabled: true
                   privileged: {{ template "jenkins.agent.privileged" . }}
@@ -160,7 +160,7 @@ data:
                 containers:
                 - name: "maven"
                   image: "{{ include "builder.image" ( dict "builder" .Values.Agent.Builder.Maven "root" . "os" "ubuntu") -}}"
-                  command: "cat"
+                  command: "/usr/local/bin/jenkins-agent"
                   args: ""
                   ttyEnabled: true
                   privileged: {{ template "jenkins.agent.privileged" . }}
@@ -236,7 +236,7 @@ data:
                 containers:
                 - name: "go"
                   image: "{{ include "builder.image" ( dict "builder" .Values.Agent.Builder.Golang "root" . "os" "ubuntu") -}}"
-                  command: "cat"
+                  command: "/usr/local/bin/jenkins-agent"
                   args: ""
                   ttyEnabled: true
                   privileged: {{ template "jenkins.agent.privileged" . }}
@@ -301,7 +301,7 @@ data:
                 containers:
                 - name: "python"
                   image: "{{- include "builder.image" ( dict "builder" .Values.Agent.Builder.Python "root" .) }}"
-                  command: "cat"
+                  command: "/usr/local/bin/jenkins-agent"
                   args: ""
                   ttyEnabled: true
                   privileged: {{ template "jenkins.agent.privileged" . }}
