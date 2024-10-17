@@ -43,7 +43,7 @@ function util::cmd_must_exist {
 
 
 # util::wait_pod_ready waits for pod state becomes ready until timeout.
-# Parmeters:
+# Parameters:
 #  - $1: pod label, such as "app=etcd"
 #  - $2: pod namespace, such as "kpanda-system"
 #  - $3: time out, such as "200s"
@@ -96,7 +96,7 @@ function util::kubectl_with_retry() {
 
 # util::create_cluster creates a kubernetes cluster
 # util::create_cluster creates a kind cluster and don't wait for control plane node to be ready.
-# Parmeters:
+# Parameters:
 #  - $1: cluster name, such as "host"
 #  - $2: KUBECONFIG file, such as "/var/run/host.config"
 #  - $3: node docker image to use for booting the cluster, such as "kindest/node:v1.19.1"
@@ -114,7 +114,7 @@ function util::create_cluster() {
 }
 
 # util::delete_cluster deletes kind cluster by name
-# Parmeters:
+# Parameters:
 # - $1: cluster name, such as "host"
 function util::delete_cluster() {
   local cluster_name=${1}

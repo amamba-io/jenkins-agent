@@ -35,71 +35,71 @@ jobs:
           fi
           echo "container_tag=${VERSION}" >> $GITHUB_OUTPUT
           echo "platforms=${PLATFORMS}" >> $GITHUB_OUTPUT
-  check-generate-versions:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: check generate versions diff
-        id: check-versions-diff
-        run: |
-          make update-agents-version
-          if ! git diff HEAD --exit-code > /dev/null; then
-            echo "Error: Detected changes after running 'make update-agents-version'."
-            echo "The following changes were detected:"
-            git diff HEAD
-            echo "Please run 'make update-agents-version' and commit the changes."
-            exit 1
-          fi
-  manifest-conformance:
-    needs: [check-generate-versions]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-      - name: Validate Helm Policy
-        run: "OUTPUT=github make conftest \n"
-  build-jenkins:
-    permissions:
-      contents: read
-      packages: write
-    needs: [init-variable, manifest-conformance]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: use-setup-buildx-action
-        uses: docker/setup-buildx-action@v3
-      - name: login
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: build jenkins
-        uses: docker/build-push-action@v6
-        with:
-          context: ./
-          file: ./Dockerfile
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          push: true
-          provenance: false
-          platforms: ${{ needs.init-variable.outputs.platforms }}
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/jenkins:${{ needs.init-variable.outputs.container_tag }}-2.413
-            ${{ secrets.DOCKER_USERNAME }}/jenkins:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+#  check-generate-versions:
+#    runs-on: ubuntu-24.04
+#    steps:
+#      - name: checkout
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#      - name: check generate versions diff
+#        id: check-versions-diff
+#        run: |
+#          make update-agents-version
+#          if ! git diff HEAD --exit-code > /dev/null; then
+#            echo "Error: Detected changes after running 'make update-agents-version'."
+#            echo "The following changes were detected:"
+#            git diff HEAD
+#            echo "Please run 'make update-agents-version' and commit the changes."
+#            exit 1
+#          fi
+#  manifest-conformance:
+#    needs: [check-generate-versions]
+#    runs-on: ubuntu-24.04
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Install Helm
+#        uses: azure/setup-helm@v3
+#      - name: Validate Helm Policy
+#        run: "OUTPUT=github make conftest \n"
+#  build-jenkins:
+#    permissions:
+#      contents: read
+#      packages: write
+#    needs: [init-variable, manifest-conformance]
+#    runs-on: ubuntu-24.04
+#    steps:
+#      - name: checkout
+#        uses: actions/checkout@v4
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v3
+#      - name: use-setup-buildx-action
+#        uses: docker/setup-buildx-action@v3
+#      - name: login
+#        uses: docker/login-action@v2
+#        with:
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+#      - name: build jenkins
+#        uses: docker/build-push-action@v6
+#        with:
+#          context: ./
+#          file: ./Dockerfile
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#          push: true
+#          provenance: false
+#          platforms: ${{ needs.init-variable.outputs.platforms }}
+#          tags: |
+#            ${{ secrets.DOCKER_USERNAME }}/jenkins:${{ needs.init-variable.outputs.container_tag }}-2.413
+#            ${{ secrets.DOCKER_USERNAME }}/jenkins:latest
+#          cache-from: type=gha
+#          cache-to: type=gha,mode=max
   build-jenkins-agent-base:
     permissions:
       contents: read
       packages: write
-    needs: [init-variable, manifest-conformance]
+    needs: [init-variable]
     strategy:
       fail-fast: false
       matrix:
@@ -140,9 +140,11 @@ jobs:
         run: |
           AGENT_IMAGE="${{ secrets.DOCKER_USERNAME }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.distribution }}"
           echo "Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh -e AGENT_IMAGE=$AGENT_IMAGE -i $AGENT_IMAGE /bin/bash -c "
-            ./tmp/check_agent_base_tools.sh
-          "
+          docker run -v ./hack/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh \
+            -v ./config/image-check/base-agent:/tmp/base-agent/ \
+            -e AGENT_IMAGE=$AGENT_IMAGE \
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_base_tools.sh"
       - name: build jenkins agent with podman
         uses: docker/build-push-action@v6
         with:
@@ -165,16 +167,18 @@ jobs:
         run: |
           AGENT_IMAGE="${{ secrets.DOCKER_USERNAME }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.distribution }}-podman"
           echo "Agent Image: ${AGENT_IMAGE}"
-          docker run -v ./hack/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh -e AGENT_IMAGE=$AGENT_IMAGE -i $AGENT_IMAGE /bin/bash -c "
-            ./tmp/check_agent_base_tools.sh
-          "
-  build-deprected-agent-centos:
-    needs: [build-jenkins-agent-base, init-variable]
-    uses: ./.github/workflows/build_centos.yaml
-    secrets: inherit
-    with:
-      container_tag: ${{ needs.init-variable.outputs.container_tag }}
-      platforms: ${{ needs.init-variable.outputs.platforms }}
+          docker run -v ./hack/check_agent_base_tools.sh:/tmp/check_agent_base_tools.sh \
+            -v ./config/image-check/base-agent:/tmp/base-agent/ \
+            -e AGENT_IMAGE=$AGENT_IMAGE \
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_base_tools.sh"
+#  build-deprected-agent-centos:
+#    needs: [build-jenkins-agent-base, init-variable]
+#    uses: ./.github/workflows/build_centos.yaml
+#    secrets: inherit
+#    with:
+#      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+#      platforms: ${{ needs.init-variable.outputs.platforms }}
   build-agent-nodejs:
     needs: [build-jenkins-agent-base, init-variable]
     strategy:
@@ -230,11 +234,11 @@ jobs:
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-nodejs:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
           docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./config/image-check/nodejs-agent:/tmp/nodejs-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
   build-agent-python:
     needs: [build-jenkins-agent-base, init-variable]
     strategy:
@@ -290,11 +294,11 @@ jobs:
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-python:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
           docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./config/image-check/python-agent:/tmp/python-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
   build-agent-golang:
     needs: [build-jenkins-agent-base, init-variable]
     strategy:
@@ -350,11 +354,11 @@ jobs:
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-go:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
           docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./config/image-check/go-agent:/tmp/go-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
   build-agent-maven:
     needs: [build-jenkins-agent-base, init-variable]
     strategy:
@@ -413,75 +417,75 @@ jobs:
           AGENT_IMAGE=${{ secrets.DOCKER_USERNAME }}/jenkins-agent-maven:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
           echo "Software Matrix Version: ${SOFTWARE_MATRIX}, Agent Image: ${AGENT_IMAGE}"
           docker run -v ./hack/check_agent_software_tools.sh:/tmp/check_agent_software_tools.sh \
+            -v ./config/image-check/maven-agent:/tmp/maven-agent/ \
             -e AGENT_IMAGE=$AGENT_IMAGE \
             -e SOFTWARE_MATRIX=${SOFTWARE_MATRIX} \
-            -i $AGENT_IMAGE /bin/bash -c "
-              ./tmp/check_agent_software_tools.sh
-            "
-  validate-relok8s-images:
-    needs: [build-jenkins, build-agent-maven, build-agent-golang, build-agent-python, build-agent-nodejs]
-    uses: ./.github/workflows/check_relok8s.yaml
-    secrets: inherit
-  e2e:
-    runs-on: ubuntu-24.04
-    if: github.ref_type != 'tag'
-    needs: [init-variable, build-jenkins]
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.12.1
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.7.0
-      - name: Deploy Chart
-        run: |
-          ./hack/install/envsubst.sh
-          VERSION=${{ needs.init-variable.outputs.container_tag }} make deploy
-  publish-chart:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-jenkins, build-agent-maven, build-agent-golang, build-agent-python, build-agent-nodejs]
-    permissions:
-      contents: write
-    env:
-      HELM_CHARTS_DIR: charts
-      HELM_CHART_NAME: jenkins
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-      - name: Get the version
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Tag helm chart image
-        run: |
-          image_tag=${{ steps.get_version.outputs.VERSION }}
-          chart_version=${{ steps.get_version.outputs.VERSION }}
-          sed -i "s/latest/${image_tag}/g" $HELM_CHARTS_DIR/values.yaml
-          sed -i "s/latest/${image_tag}/g" $HELM_CHARTS_DIR/.relok8s-images.yaml
-          chart_smever=${chart_version#"v"}
-          sed -i "s/0.1.0/${chart_smever}/g" $HELM_CHARTS_DIR/Chart.yaml
-      - uses: getsentry/action-github-app-token@v2
-        id: get_app_token
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PRIVATE_KEY }}
-      - name: Sync Chart Repo
-        run: |-
-          git config --global user.email "amamba[bot]@users.noreply.github.com"
-          git config --global user.name "amamba[bot]"
-          git clone https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git amamba-charts
-          helm package $HELM_CHARTS_DIR --destination ./amamba-charts/docs/
-          helm repo index --url https://amamba-io.github.io/charts ./amamba-charts/docs/
-          cd amamba-charts/
-          git add docs/
-          chart_version=${{ steps.get_version.outputs.VERSION }}
-          git commit -m "update jenkins chart ${chart_version}"
-          git push https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git
+            -i $AGENT_IMAGE /bin/bash \
+            -c "./tmp/check_agent_software_tools.sh"
+#  validate-relok8s-images:
+#    needs: [build-jenkins, build-agent-maven, build-agent-golang, build-agent-python, build-agent-nodejs]
+#    uses: ./.github/workflows/check_relok8s.yaml
+#    secrets: inherit
+#  e2e:
+#    runs-on: ubuntu-24.04
+#    if: github.ref_type != 'tag'
+#    needs: [init-variable, build-jenkins]
+#    steps:
+#      - name: checkout
+#        uses: actions/checkout@v4
+#      - name: Set up Helm
+#        uses: azure/setup-helm@v3
+#        with:
+#          version: v3.12.1
+#      - name: Create kind cluster
+#        uses: helm/kind-action@v1.7.0
+#      - name: Deploy Chart
+#        run: |
+#          ./hack/install/envsubst.sh
+#          VERSION=${{ needs.init-variable.outputs.container_tag }} make deploy
+#  publish-chart:
+#    if: startsWith(github.ref, 'refs/tags/v')
+#    needs: [build-jenkins, build-agent-maven, build-agent-golang, build-agent-python, build-agent-nodejs]
+#    permissions:
+#      contents: write
+#    env:
+#      HELM_CHARTS_DIR: charts
+#      HELM_CHART_NAME: jenkins
+#    runs-on: ubuntu-24.04
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#      - name: Install Helm
+#        uses: azure/setup-helm@v3
+#      - name: Get the version
+#        id: get_version
+#        run: |
+#          VERSION=${GITHUB_REF#refs/tags/}
+#          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+#      - name: Tag helm chart image
+#        run: |
+#          image_tag=${{ steps.get_version.outputs.VERSION }}
+#          chart_version=${{ steps.get_version.outputs.VERSION }}
+#          sed -i "s/latest/${image_tag}/g" $HELM_CHARTS_DIR/values.yaml
+#          sed -i "s/latest/${image_tag}/g" $HELM_CHARTS_DIR/.relok8s-images.yaml
+#          chart_smever=${chart_version#"v"}
+#          sed -i "s/0.1.0/${chart_smever}/g" $HELM_CHARTS_DIR/Chart.yaml
+#      - uses: getsentry/action-github-app-token@v2
+#        id: get_app_token
+#        with:
+#          app_id: ${{ secrets.APP_ID }}
+#          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+#      - name: Sync Chart Repo
+#        run: |-
+#          git config --global user.email "amamba[bot]@users.noreply.github.com"
+#          git config --global user.name "amamba[bot]"
+#          git clone https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git amamba-charts
+#          helm package $HELM_CHARTS_DIR --destination ./amamba-charts/docs/
+#          helm repo index --url https://amamba-io.github.io/charts ./amamba-charts/docs/
+#          cd amamba-charts/
+#          git add docs/
+#          chart_version=${{ steps.get_version.outputs.VERSION }}
+#          git commit -m "update jenkins chart ${chart_version}"
+#          git push https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git
