@@ -5,7 +5,7 @@
   when: required is defined and required | bool
 - name: Install Docker
   shell: |
-    curl -L -o docker-{{ docker_version }}.tgz https://download.docker.com/linux/static/stable/{{ arch_x86_64 or arch_aarch64 }}/docker-{{ docker_version }}.tgz &&  
+    wget https://download.docker.com/linux/static/stable/{{ arch_x86_64 or arch_aarch64 }}/docker-{{ docker_version }}.tgz &&
     tar xzvf docker-{{ docker_version }}.tgz &&  
     mv docker/* /usr/local/bin/ &&  
     rm -rf docker-{{ docker_version }}.tgz &&  
@@ -18,7 +18,11 @@
 
 - name: Install Helm
   shell: |
-    curl -f https://get.helm.sh/helm-v{{ helm_version }}-linux-{{ arch_amd64 or arch_arm64 }}.tar.gz | tar xzv -C /usr/local/bin && mv /usr/local/bin/linux-{{ arch_amd64 or arch_arm64 }}/helm /usr/local/bin/helm && helm version
+    wget https://get.helm.sh/helm-v{{ helm_version }}-linux-{{ arch_amd64 or arch_arm64 }}.tar.gz
+    tar -zxvf helm-v{{ helm_version }}-linux-{{ arch_amd64 or arch_arm64 }}.tar.gz
+    mv linux-{{ arch_amd64 or arch_arm64 }}/helm /usr/local/bin/helm
+    rm -rf helm-v{{ helm_version }}-linux-{{ arch_amd64 or arch_arm64 }}.tar.gz
+    helm version
   register: helm_install_result
   until: helm_install_result is succeeded
   when: required is defined and required | bool
@@ -42,7 +46,7 @@
 
 - name: Install Argo Rollouts CLI
   shell: |
-    curl -LO https://github.com/argoproj/argo-rollouts/releases/download/{{ argo_rollouts_cli_version }}/kubectl-argo-rollouts-linux-{{ arch_amd64 or arch_arm64 }} &&  
+    wget https://github.com/argoproj/argo-rollouts/releases/download/{{ argo_rollouts_cli_version }}/kubectl-argo-rollouts-linux-{{ arch_amd64 or arch_arm64 }} &&       
     chmod +x ./kubectl-argo-rollouts-linux-{{ arch_amd64 or arch_arm64 }} &&  
     mv ./kubectl-argo-rollouts-linux-{{ arch_amd64 or arch_arm64 }} /usr/local/bin/kubectl-argo-rollouts
   when: required is defined and required | bool
@@ -67,7 +71,7 @@
 
 - name: Install Java 11
   shell: |
-    curl -fLo jdk-{{ jdk_11_version }}.tar.gz https://aka.ms/download-jdk/microsoft-jdk-{{ jdk_11_version }}-linux-{{ arch_x64 or arch_aarch64 }}.tar.gz &&  
+    wget https://aka.ms/download-jdk/microsoft-jdk-{{ jdk_11_version }}-linux-{{ arch_x64 or arch_aarch64 }}.tar.gz -O jdk-{{ jdk_11_version }}.tar.gz &&      
     tar zxf jdk-{{ jdk_11_version }}.tar.gz &&  
     mv jdk-{{ jdk_11_version_dir }}+9 /opt/java-{{ jdk_11_version_dir }} &&  
     rm jdk-{{ jdk_11_version }}.tar.gz
@@ -76,7 +80,7 @@
   delay: 5
 - name: Install sonar scanner
   shell: |
-    curl -Lo /tmp/sonar_scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-{{ sonar_scanner_version }}.zip &&  
+    wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-{{ sonar_scanner_version }}.zip -O /tmp/sonar_scanner.zip &&
     unzip /tmp/sonar_scanner.zip -d /opt/ &&  
     mv /opt/sonar-scanner-{{ sonar_scanner_version }} /opt/sonar-scanner &&  
     sed -i '1 a JAVA_HOME=/opt/java-{{ jdk_11_version_dir }}' /opt/sonar-scanner/bin/sonar-scanner &&  
@@ -99,7 +103,7 @@
 
 - name: Install ArgoCD Cli
   shell: |
-    curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/{{ argocd_cli_version }}/argocd-linux-{{ arch_amd64 or arch_arm64 }}  
+    wget https://github.com/argoproj/argo-cd/releases/download/{{ argocd_cli_version }}/argocd-linux-{{ arch_amd64 or arch_arm64 }} -O /usr/local/bin/argocd &&       
     chmod +x /usr/local/bin/argocd
   when: required is defined and required | bool
   retries: 3
