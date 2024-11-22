@@ -490,3 +490,66 @@ jobs:
           chart_version=${{ steps.get_version.outputs.VERSION }}
           git commit -m "update jenkins chart ${chart_version}"
           git push https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git
+  publish-minimal-chart:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-jenkins, build-agent-maven, build-agent-golang, build-agent-python, build-agent-nodejs]
+    permissions:
+      contents: write
+    env:
+      HELM_CHARTS_DIR: charts
+      HELM_CHART_NAME: jenkins
+      MINIMAL_GOLANG_VERSION: "1.22.6"
+      MINIMAL_PYTHON_VERSION: "3.8.19"
+      MINIMAL_MAVEN_VERSION: "jdk8"
+      MINIMAL_NODEJS_VERSION: "18.20.4"
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+      - name: Get the version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION_MINIMAL=${VERSION}-minimal
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION_MINIMAL=${VERSION_MINIMAL}" >> $GITHUB_OUTPUT
+      - name: Tag helm chart image
+        run: |
+          image_tag=${{ steps.get_version.outputs.VERSION }}
+          chart_version=${{ steps.get_version.outputs.VERSION_MINIMAL }}
+
+          # just keep minimal agent image
+          yq -i '.Agent[] = []' version.yaml
+          yq -i '
+            .Agent.Golang += [env(MINIMAL_GOLANG_VERSION)] |
+            .Agent.Python += [env(MINIMAL_PYTHON_VERSION)] |
+            .Agent.Maven += [env(MINIMAL_MAVEN_VERSION)] |
+            .Agent.NodeJs += [env(MINIMAL_NODEJS_VERSION)]
+          ' version.yaml
+          make update-agents-version
+
+          sed -i "s/latest/${image_tag}/g" $HELM_CHARTS_DIR/values.yaml
+          sed -i "s/latest/${image_tag}/g" $HELM_CHARTS_DIR/.relok8s-images.yaml
+          chart_smever=${chart_version#"v"}
+          sed -i "s/0.1.0/${chart_smever}/g" $HELM_CHARTS_DIR/Chart.yaml
+      - uses: getsentry/action-github-app-token@v2
+        id: get_app_token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Sync Chart Repo
+        run: |-
+          git config --global user.email "amamba[bot]@users.noreply.github.com"
+          git config --global user.name "amamba[bot]"
+          git clone https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git amamba-charts
+          helm package $HELM_CHARTS_DIR --destination ./amamba-charts/docs/
+          helm repo index --url https://amamba-io.github.io/charts ./amamba-charts/docs/
+          cd amamba-charts/
+          git add docs/
+          chart_version=${{ steps.get_version.outputs.VERSION_MINIMAL }}
+          git commit -m "update jenkins chart ${chart_version}"
+          git push https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git
