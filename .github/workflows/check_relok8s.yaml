@@ -37,7 +37,7 @@ jobs:
       - name: Install chart-syncer
         run: |
           helm plugin install https://github.com/chartmuseum/helm-push.git
-          wget -q "https://files.m.daocloud.io/github.com/DaoCloud/charts-syncer/releases/download/v${{ env.CHARTS_SYNCER_VERSION }}/charts-syncer_${{ env.CHARTS_SYNCER_VERSION }}_linux_x86_64.tar.gz"
+          wget --tries=5 --retry-connrefused --wait=5 -q "https://files.m.daocloud.io/github.com/DaoCloud/charts-syncer/releases/download/v${{ env.CHARTS_SYNCER_VERSION }}/charts-syncer_${{ env.CHARTS_SYNCER_VERSION }}_linux_x86_64.tar.gz"
           tar -zvxf charts-syncer_${{ env.CHARTS_SYNCER_VERSION }}_linux_x86_64.tar.gz
           chmod +x charts-syncer &&  mv charts-syncer /usr/local/bin/
       - name: Update chart tag
