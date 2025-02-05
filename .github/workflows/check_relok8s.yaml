@@ -83,7 +83,7 @@ jobs:
           helm repo update
           chart_smever=${{ steps.init-variable.outputs.CHART_SMEVER }}
           helm search repo target-chartmuseum/${{ env.HELM_CHARTS_NAME }} --version $chart_smever || exit 1
-          IMAGE_LIST=`helm template test target-chartmuseum/${{ env.HELM_CHARTS_NAME }} --version $chart_smever | grep "image: " | awk -F'[: "]+' '{print $3":"$4}' | sort | uniq`
+          IMAGE_LIST=`helm template test target-chartmuseum/${{ env.HELM_CHARTS_NAME }} --version $chart_smever --set trace.enabled=true --set eventProxy.enabled=true | grep "image: " | awk -F'[: "]+' '{print $3":"$4}' | sort | uniq`
           if [ -z "${IMAGE_LIST}" ] ; then 
               echo "error, failed to find image from chart template for ${{ env.HELM_CHARTS_NAME }}" 
               exit 1 
