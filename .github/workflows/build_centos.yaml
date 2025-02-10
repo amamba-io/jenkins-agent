@@ -38,7 +38,7 @@ jobs:
           export "nodejsVersion=$( echo -${{ matrix.version }})"
           echo "suffix=${nodejsVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.9.0
       - name: build jenkins agent with nodejs
         uses: docker/build-push-action@v6
         with:
@@ -85,7 +85,7 @@ jobs:
           export "pythonVersion=$( echo -${{ matrix.version }})"
           echo "suffix=${pythonVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.9.0
       - name: build jenkins agent with python
         uses: docker/build-push-action@v6
         with:
@@ -132,7 +132,7 @@ jobs:
           export "goVersion=$( echo -${{ matrix.version }})"
           echo "suffix=${goVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.9.0
       - name: build jenkins agent with go
         uses: docker/build-push-action@v6
         with:
@@ -186,7 +186,7 @@ jobs:
           echo "runtime=${runtime}" >> $GITHUB_OUTPUT
           echo "suffix=${jdkVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.9.0
       - name: build jenkins agent with maven
         uses: docker/build-push-action@v6
         with:
