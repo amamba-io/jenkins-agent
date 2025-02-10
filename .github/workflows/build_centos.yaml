@@ -39,6 +39,10 @@ jobs:
           echo "suffix=${nodejsVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=ghcr.io/amamba-io/buildkit:buildx-stable-1
+            network=host
       - name: build jenkins agent with nodejs
         uses: docker/build-push-action@v6
         with:
@@ -86,6 +90,10 @@ jobs:
           echo "suffix=${pythonVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=ghcr.io/amamba-io/buildkit:buildx-stable-1
+            network=host
       - name: build jenkins agent with python
         uses: docker/build-push-action@v6
         with:
@@ -133,6 +141,10 @@ jobs:
           echo "suffix=${goVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=ghcr.io/amamba-io/buildkit:buildx-stable-1
+            network=host
       - name: build jenkins agent with go
         uses: docker/build-push-action@v6
         with:
@@ -187,6 +199,10 @@ jobs:
           echo "suffix=${jdkVersion}${runtime}" >> $GITHUB_OUTPUT
       - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=ghcr.io/amamba-io/buildkit:buildx-stable-1
+            network=host
       - name: build jenkins agent with maven
         uses: docker/build-push-action@v6
         with:
