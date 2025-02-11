@@ -1,0 +1,417 @@
+name: Build Images
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
+  workflow_dispatch:
+permissions:
+  packages: write
+  contents: read
+jobs:
+  init-variable:
+    runs-on: ubuntu-24.04
+    outputs:
+      container_tag: ${{ steps.init_variable.outputs.container_tag }}
+      platforms: ${{ steps.init_variable.outputs.platforms }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: output environment variable
+        id: init_variable
+        run: |
+          set -x
+          if [[ $GITHUB_REF =~ ^refs/tags/v ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(git describe --tags --abbrev=8)
+            PLATFORMS="linux/amd64"
+          fi
+          echo "container_tag=${VERSION}" >> $GITHUB_OUTPUT
+          echo "platforms=${PLATFORMS}" >> $GITHUB_OUTPUT
+  check-generate-versions:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: check generate versions diff
+        id: check-versions-diff
+        run: |
+          make update-agents-version
+          if ! git diff HEAD --exit-code > /dev/null; then
+            echo "Error: Detected changes after running 'make update-agents-version'."
+            echo "The following changes were detected:"
+            git diff HEAD
+            echo "Please run 'make update-agents-version' and commit the changes."
+            exit 1
+          fi
+  manifest-conformance:
+    needs: [check-generate-versions]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+      - name: Validate Helm Policy
+        run: "OUTPUT=github make conftest \n"
+  build-jenkins:
+    needs: [init-variable, manifest-conformance]
+    uses: ./.github/workflows/build_jenkins.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+  build-jenkins-agent-base-amd:
+    needs: [init-variable, manifest-conformance]
+    uses: ./.github/workflows/build_agent_image_amd.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_base: true
+  build-jenkins-agent-base-arm:
+    needs: [init-variable, manifest-conformance]
+    uses: ./.github/workflows/build_agent_image_arm.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_base: true
+  push-jenkins-agent-base-manifest:
+    needs: [init-variable, build-jenkins-agent-base-amd, build-jenkins-agent-base-arm]
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        os: ["centos", "ubuntu"]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: init variables
+        id: step-variable
+        run: |
+          export "distribution=$([ ${{ matrix.os }} == ubuntu ] && (echo -ubuntu))"
+          echo "distribution=${distribution}" >> $GITHUB_OUTPUT
+      - name: push jenkins agent base manifest
+        run: |-
+          commitImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.distribution }}
+          latestImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:latest${{ steps.step-variable.outputs.distribution }}
+          commitPodmanImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.distribution }}-podman
+          latestPodmanImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:latest${{ steps.step-variable.outputs.distribution }}-podman
+
+          docker manifest create "${commitImg}" "${commitImg}-amd64" "${commitImg}-arm64"
+          docker manifest create "${latestImg}" "${latestImg}-amd64" "${latestImg}-arm64"
+          docker manifest create "${commitPodmanImg}" "${commitPodmanImg}-amd64" "${commitPodmanImg}-arm64"
+          docker manifest create "${latestPodmanImg}" "${latestPodmanImg}-amd64" "${latestPodmanImg}-arm64"
+
+          docker manifest push "${commitImg}"
+          docker manifest push "${latestImg}"
+          docker manifest push "${commitPodmanImg}"
+          docker manifest push "${latestPodmanImg}"
+  build-deprecated-agent-centos:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_deprecated_agent_image.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+  build-agent-nodejs-amd:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_amd.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_nodejs: true
+  build-agent-nodejs-arm:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_arm.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_nodejs: true
+  push-jenkins-agent-nodejs-manifest:
+    needs: [init-variable, build-agent-nodejs-amd, build-agent-nodejs-arm]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        runtime: [docker, podman]
+        version: [16.20.2, 18.20.4, 20.17.0]
+    env:
+      os: ubuntu
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: init variables
+        id: step-variable
+        run: |
+          export "runtime=$([ ${{ matrix.runtime }} == podman ] && (echo -podman))"
+          echo "runtime=${runtime}" >> $GITHUB_OUTPUT
+          export "nodejsVersion=$( echo -${{ matrix.version }})"
+          echo "suffix=${nodejsVersion}-${{ env.os }}${runtime}" >> $GITHUB_OUTPUT
+      - name: push jenkins agent nodejs manifest
+        run: |-
+          commitImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
+          latestImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:latest${{ steps.step-variable.outputs.suffix }}
+
+          docker manifest create "${commitImg}" "${commitImg}-amd64" "${commitImg}-arm64"
+          docker manifest create "${latestImg}" "${latestImg}-amd64" "${latestImg}-arm64"
+
+          docker manifest push "${commitImg}"
+          docker manifest push "${latestImg}"
+  build-agent-python-amd:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_amd.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_python: true
+  build-agent-python-arm:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_arm.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_python: true
+  push-jenkins-agent-python-manifest:
+    needs: [init-variable, build-agent-python-amd, build-agent-python-arm]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        runtime: [docker, podman]
+        version: [3.8.19, 2.7.9, 3.10.9, 3.11.9]
+    env:
+      os: ubuntu
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: init variables
+        id: step-variable
+        run: |
+          export "runtime=$([ ${{ matrix.runtime }} == podman ] && (echo -podman))"
+          echo "runtime=${runtime}" >> $GITHUB_OUTPUT
+          export "pythonVersion=$( echo -${{ matrix.version }})"
+          echo "suffix=${pythonVersion}-${{ env.os }}${runtime}" >> $GITHUB_OUTPUT
+      - name: push jenkins agent python manifest
+        run: |-
+          commitImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
+          latestImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:latest${{ steps.step-variable.outputs.suffix }}
+
+          docker manifest create "${commitImg}" "${commitImg}-amd64" "${commitImg}-arm64"
+          docker manifest create "${latestImg}" "${latestImg}-amd64" "${commitImg}-arm64"
+
+          docker manifest push "${commitImg}"
+          docker manifest push "${latestImg}"
+  build-agent-golang-amd:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_amd.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_golang: true
+  build-agent-golang-arm:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_arm.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_golang: true
+  push-jenkins-agent-golang-manifest:
+    needs: [init-variable, build-agent-golang-amd, build-agent-golang-arm]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        runtime: [docker, podman]
+        version: [1.22.6, 1.17.13, 1.18.10, 1.20.14]
+    env:
+      os: ubuntu
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: init variables
+        id: step-variable
+        run: |
+          export "runtime=$([ ${{ matrix.runtime }} == podman ] && (echo -podman))"
+          echo "runtime=${runtime}" >> $GITHUB_OUTPUT
+          export "goVersion=$( echo -${{ matrix.version }})"
+          echo "suffix=${goVersion}-${{ env.os }}${runtime}" >> $GITHUB_OUTPUT
+      - name: push jenkins agent golang manifest
+        run: |-
+          commitImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
+          latestImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:latest${{ steps.step-variable.outputs.suffix }}
+
+          docker manifest create "${commitImg}" "${commitImg}-amd64" "${commitImg}-arm64"
+          docker manifest create "${latestImg}" "${latestImg}-amd64" "${latestImg}-arm64"
+
+          docker manifest push "${commitImg}"
+          docker manifest push "${latestImg}"
+  build-agent-maven-amd:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_amd.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_maven: true
+  build-agent-maven-arm:
+    needs: [init-variable, push-jenkins-agent-base-manifest]
+    uses: ./.github/workflows/build_agent_image_arm.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ needs.init-variable.outputs.container_tag }}
+      build_agent_maven: true
+  push-jenkins-agent-maven-manifest:
+    needs: [init-variable, build-agent-maven-amd, build-agent-maven-arm]
+    runs-on: ubuntu-24.04
+    env:
+      os: ubuntu
+    strategy:
+      fail-fast: true
+      matrix:
+        runtime: [docker, podman]
+        version: ["8", "11", "17", "21"]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: init variables
+        id: step-variable
+        run: |
+          export "runtime=$([ ${{ matrix.runtime }} == podman ] && (echo -podman))"
+          export "jdkVersion=$(echo -jdk${{ matrix.version }})"
+          export "javaVersion=${{ matrix.version }}"
+          echo "javaVersion=${javaVersion}" >> $GITHUB_OUTPUT
+          echo "jdkVersion=${jdkVersion}" >> $GITHUB_OUTPUT
+          echo "runtime=${runtime}" >> $GITHUB_OUTPUT
+          echo "suffix=${jdkVersion}-${{ env.os }}${runtime}" >> $GITHUB_OUTPUT
+      - name: push jenkins agent maven manifest
+        run: |
+          commitImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:${{ needs.init-variable.outputs.container_tag }}${{ steps.step-variable.outputs.suffix }}
+          latestImg=ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:latest${{ steps.step-variable.outputs.suffix }}
+
+          docker manifest create "${commitImg}" "${commitImg}-amd64" "${commitImg}-arm64"
+          docker manifest create "${latestImg}" "${latestImg}-amd64" "${latestImg}-arm64"
+
+          docker manifest push "${commitImg}"
+          docker manifest push "${latestImg}"
+  validate-relok8s-images:
+    needs: [init-variable, build-jenkins, push-jenkins-agent-base-manifest, push-jenkins-agent-nodejs-manifest, push-jenkins-agent-python-manifest, push-jenkins-agent-golang-manifest, push-jenkins-agent-maven-manifest]
+    uses: ./.github/workflows/check_relok8s.yaml
+    secrets: inherit
+  e2e-amd:
+    runs-on: ubuntu-24.04
+    if: github.ref_type != 'tag'
+    needs: [init-variable, build-jenkins]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.1
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.7.0
+      - name: Deploy Chart
+        run: |
+          ./hack/install/envsubst.sh
+          VERSION=${{ needs.init-variable.outputs.container_tag }} make deploy
+  e2e-arm:
+    runs-on: ubuntu-24.04-arm
+    if: github.ref_type != 'tag'
+    needs: [init-variable, build-jenkins]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.1
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.7.0
+      - name: Deploy Chart
+        run: |
+          ./hack/install/envsubst.sh
+          VERSION=${{ needs.init-variable.outputs.container_tag }} make deploy
+  publish-charts:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [validate-relok8s-images]
+    strategy:
+      fail-fast: true
+      matrix:
+        chart_dir: [charts/jenkins, charts/jenkins-full]
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+      - name: Get the version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+      - name: Tag helm chart image
+        run: |
+          image_tag=${{ steps.get_version.outputs.VERSION }}
+          chart_version=${{ steps.get_version.outputs.VERSION }}
+          sed -i "s/latest/${image_tag}/g" ${{ matrix.chart_dir }}/values.yaml
+          sed -i "s/latest/${image_tag}/g" ${{ matrix.chart_dir }}/.relok8s-images.yaml
+          chart_smever=${chart_version#"v"}
+          sed -i "s/0.1.0/${chart_smever}/g" ${{ matrix.chart_dir }}/Chart.yaml
+      - uses: getsentry/action-github-app-token@v2
+        id: get_app_token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Sync Chart Repo
+        run: |-
+          git config --global user.email "amamba[bot]@users.noreply.github.com"
+          git config --global user.name "amamba[bot]"
+          git clone https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git amamba-charts
+          helm package ${{ matrix.chart_dir }} --destination ./amamba-charts/docs/
+          helm repo index --url https://amamba-io.github.io/charts ./amamba-charts/docs/
+          cd amamba-charts/
+          git add docs/
+          chart_version=${{ steps.get_version.outputs.VERSION }}
+          git commit -m "update jenkins chart ${chart_version}"
+          git push https://x-access-token:${{ steps.get_app_token.outputs.token }}@github.com/amamba-io/charts.git
