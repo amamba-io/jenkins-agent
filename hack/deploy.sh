@@ -24,7 +24,14 @@ fi
 
 set -x
 
-helm upgrade --install --wait  --create-namespace --cleanup-on-fail \
+echo "debug: Jenkins chart template: "
+helm template $LOCAL_RELEASE_NAME charts/jenkins-full --debug -n "${TARGET_NS}" ${values}
+
+echo "debug: Jenkins using Images: "
+helm template $LOCAL_RELEASE_NAME charts/jenkins-full --debug -n "${TARGET_NS}" ${values} | grep "image:"
+
+echo "Deploying Jenkins: "
+helm upgrade --install --wait --debug --create-namespace --cleanup-on-fail \
       ${LOCAL_RELEASE_NAME}  charts/jenkins-full \
       -n "${TARGET_NS}" \
       ${values}

@@ -13,7 +13,7 @@ test_casc_with_valid_image {
 		"apiVersion": "v1",
 		"kind": "ConfigMap",
 		"metadata": {"name": "jenkins-casc-config"},
-		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"docker.io/amambadev/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"docker.io/jenkins/inbound-agent:4.10-2\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"docker.io/amambadev/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"docker.io/jenkins/inbound-agent:4.10-2\"\n"},
+		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:4.10-2\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:4.10-2\"\n"},
 	}
 	no_violations with input as input
 }
@@ -23,7 +23,7 @@ test_casc_with_invalid_base {
 		"apiVersion": "v1",
 		"kind": "ConfigMap",
 		"metadata": {"name": "jenkins-casc-config"},
-		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"base:latest\"\n            - name: \"jnlp\"\n              image: \"docker.io/jenkins/inbound-agent:4.10-2\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"docker.io/amambadev/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"docker.io/jenkins/inbound-agent:4.10-2\"\n"},
+		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:4.10-2\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:4.10-2\"\n"},
 	}
 	deny["'base' should not use image: 'base:latest'"] with input as input
 }
@@ -33,7 +33,7 @@ test_casc_with_invalid_jnlp {
 		"apiVersion": "v1",
 		"kind": "ConfigMap",
 		"metadata": {"name": "jenkins-casc-config"},
-		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"docker.io/amambadev/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"inbound-agent:4.10-2\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"docker.io/amambadev/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"docker.io/jenkins/inbound-agent:4.10-2\"\n"},
+		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:4.10-2\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:4.10-2\"\n"},
 	}
 	deny["'jnlp' should not use image: 'inbound-agent:4.10-2'"] with input as input
 }
@@ -46,7 +46,7 @@ test_default_deployments_image {
 			"initContainers": [
 				{
 					"name": "copy-default-config",
-					"image": "docker.io/amambadev/jenkins:latest-2.413",
+					"image": "ghcr.io/amamba-io/jenkins:latest-2.413",
 				},
 				{
 					"name": "opentelemetry-auto-instrumentation",
@@ -56,7 +56,7 @@ test_default_deployments_image {
 			"containers": [
 				{
 					"name": "jenkins",
-					"image": "docker.io/amambadev/jenkins:latest-2.413",
+					"image": "ghcr.io/amamba-io/jenkins:latest-2.413",
 				},
 				{
 					"name": "event-proxy",
@@ -75,11 +75,11 @@ test_cotainers_missing {
 		"spec": {"template": {"spec": {
 			"initContainers": [{
 				"name": "copy-default-config",
-				"image": "docker.io/amambadev/jenkins:latest-2.413",
+				"image": "ghcr.io/amamba-io/jenkins:latest-2.413",
 			}],
 			"containers": [{
 				"name": "jenkins",
-				"image": "docker.io/amambadev/jenkins:latest-2.413",
+				"image": "ghcr.io/amamba-io/jenkins:latest-2.413",
 			}],
 		}}},
 	}

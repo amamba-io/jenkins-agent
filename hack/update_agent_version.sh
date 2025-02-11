@@ -4,6 +4,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+set -x
+
 if ! command -v yq &> /dev/null; then
   wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64.tar.gz -O - | tar xz &&  yq --version
   yq --version
@@ -40,7 +42,10 @@ function update_chart_value() {
 }
 
 function update_github_ci() {
-  github_action_file=".github/workflows/build.yaml"
+  build_amd_ci_file=".github/workflows/build_agent_image_amd.yaml"
+  build_arm_ci_file=".github/workflows/build_agent_image_arm.yaml"
+  build_ci_file=".github/workflows/build_main.yaml"
+
   languages=$(yq eval '.Agent | keys' "$version_file" | sed 's/^- //g')
   for lang in $languages; do
     versions=$(yq eval ".Agent.${lang}[]" "$version_file")
@@ -48,7 +53,11 @@ function update_github_ci() {
       clean_versions=$(echo "$versions" | sed 's/^jdk//')
       versions_array=$(echo "$clean_versions" | awk '{print "\"" $0 "\""}' | paste -sd, -)
       action_name="build-agent-$(echo "$lang" | tr '[:upper:]' '[:lower:]')"
-      yq eval -i ".jobs.${action_name}.strategy.matrix.version = [${versions_array}]" "$github_action_file"
+      yq eval -i ".jobs.${action_name}.strategy.matrix.version = [${versions_array}]" "$build_amd_ci_file"
+      yq eval -i ".jobs.${action_name}.strategy.matrix.version = [${versions_array}]" "$build_arm_ci_file"
+
+      build_action_name="push-jenkins-agent-$(echo "$lang" | tr '[:upper:]' '[:lower:]')-manifest"
+      yq eval -i ".jobs.${build_action_name}.strategy.matrix.version = [${versions_array}]" "$build_ci_file"
     fi
   done
   echo "github ci updated successfully."
@@ -64,7 +73,7 @@ function update_rego() {
     {
       echo "package main"
       echo "agents := {"
-      echo '  "base": {"container": "base", "image": "docker.io/amambadev/jenkins-agent-base:latest'"${suffix}"'"},'
+      echo '  "base": {"container": "base", "image": "ghcr.io/amamba-io/jenkins-agent-base:latest'"${suffix}"'"},'
 
       for lang in $(echo "$agents" | yq eval 'keys' - | sed 's/- //g'); do
         lang_lower=$(echo "$lang" | tr '[:upper:]' '[:lower:]')
@@ -78,14 +87,14 @@ function update_rego() {
         for version in $versions; do
           if [[ "$first_version" == true ]]; then
             if [[ "${lang_lower}" == "maven" ]] || [[ "${lang_lower}" == "go" ]]; then
-              echo '  "'"${lang_lower}"'": {"container": "'"${lang_lower}"'", "image": "docker.io/amambadev/jenkins-agent-'"${lang_lower}"':latest-'"${version}"'-ubuntu'"${suffix}"'"},'
+              echo '  "'"${lang_lower}"'": {"container": "'"${lang_lower}"'", "image": "ghcr.io/amamba-io/jenkins-agent-'"${lang_lower}"':latest-'"${version}"'-ubuntu'"${suffix}"'"},'
               first_version=false
             else
-              echo '  "'"${lang_lower}"'": {"container": "'"${lang_lower}"'", "image": "docker.io/amambadev/jenkins-agent-'"${lang_lower}"':latest-'"${version}""${suffix}"'"},'
+              echo '  "'"${lang_lower}"'": {"container": "'"${lang_lower}"'", "image": "ghcr.io/amamba-io/jenkins-agent-'"${lang_lower}"':latest-'"${version}""${suffix}"'"},'
               first_version=false
             fi
           else
-            echo '  "'"${lang_lower}"'-'"${version}"'": {"container": "'"${lang_lower}"'", "image": "docker.io/amambadev/jenkins-agent-'"${lang_lower}"':latest-'"${version}"'-ubuntu'"${suffix}"'"},'
+            echo '  "'"${lang_lower}"'-'"${version}"'": {"container": "'"${lang_lower}"'", "image": "ghcr.io/amamba-io/jenkins-agent-'"${lang_lower}"':latest-'"${version}"'-ubuntu'"${suffix}"'"},'
           fi
         done
       done | sed '$ s/,$//'

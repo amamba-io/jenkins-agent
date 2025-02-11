@@ -7,29 +7,29 @@ Master:
     # Name of the Kubernetes scheduler to use
     SchedulerName: ""
   Name: jenkins-master
-  Image: "amambadev/jenkins"
+  Image: "amamba-io/jenkins"
   ImageTag: "${VERSION}-2.413"
 
 Agent:
-  Image: "jenkins/inbound-agent"
+  Image: "amamba-io/inbound-agent"
   ImageTag: 4.10-2
   Builder:
     Base:
-      Image: amambadev/jenkins-agent-base
+      Image: amamba-io/jenkins-agent-base
       Tag: ${VERSION}
     NodeJs16:
-      Image: amambadev/jenkins-agent-nodejs
+      Image: amamba-io/jenkins-agent-nodejs
       Tag: ${VERSION}
     Maven:
-      Image: amambadev/jenkins-agent-maven
+      Image: amamba-io/jenkins-agent-maven
       Tag: ${VERSION}-jdk1.8
     Mavenjdk11:
-      Image: amambadev/jenkins-agent-maven
+      Image: amamba-io/jenkins-agent-maven
       Tag: ${VERSION}-jdk11
     Golang:
-      Image: amambadev/jenkins-agent-go
+      Image: amamba-io/jenkins-agent-go
       Tag: ${VERSION}
     Python:
-      Image: amambadev/jenkins-agent-python
+      Image: amamba-io/jenkins-agent-python
       Tag: ${VERSION}
     ContainerRuntime: docker # Available values: docker, podman
