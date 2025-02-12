@@ -270,7 +270,7 @@ Master:
     Users: |-
       import jenkins.model.*
       import hudson.security.*
-
+      
       def adminUsername = System.getenv('ADMIN_USER')
       def adminPassword = System.getenv('ADMIN_PASSWORD')
       if (!adminUsername || !adminPassword) {
@@ -279,22 +279,19 @@ Master:
       }
       def instance = Jenkins.getInstance()
       def hudsonRealm = instance.getSecurityRealm()
-      if (!(hudsonRealm instanceof HudsonPrivateSecurityRealm)) {        
-        hudsonRealm = new HudsonPrivateSecurityRealm(false) 
+      if (!(hudsonRealm instanceof HudsonPrivateSecurityRealm)) {
+        hudsonRealm = new HudsonPrivateSecurityRealm(false)
         instance.setSecurityRealm(hudsonRealm)
       }
-      
       def existingUser = hudsonRealm.getUser(adminUsername)
       if (existingUser) {
         println "User '${adminUsername}' already exists. Updating password."
-        existingUser.changePassword(adminPassword)
       } else {
         println "Creating new user '${adminUsername}'."
-        hudsonRealm.createAccount(adminUsername, adminPassword)
       }
+      hudsonRealm.createAccount(adminUsername, adminPassword)
       instance.save()
       println "User '${adminUsername}' has been configured successfully."
-
   CustomConfigMap: false
   # By default, the configMap is only used to set the initial config the first time
   # that the chart is installed.  Setting `OverwriteConfig` to `true` will overwrite
