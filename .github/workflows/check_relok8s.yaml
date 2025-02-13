@@ -5,13 +5,14 @@ on:
 jobs:
   validate-relok8s-images:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        chart: [jenkins, jenkins-full]
     env:
       CHARTS_SYNCER_VERSION: 0.0.23
       SOURCE_CONTAINER_REGISTRY: http://localhost:8080
       TARGET_CONTAINER_REGISTRY: http://localhost:8081
       TEST_CONTAINER_REGISTRY: k8s.container.registry.io
-      HELM_CHARTS_DIR: charts/jenkins-full
-      HELM_CHARTS_NAME: jenkins-full
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -30,6 +31,7 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           echo "IMAGE_TAG=${VERSION}" >> $GITHUB_OUTPUT
           echo "CHART_SMEVER=${VERSION#"v"}" >> $GITHUB_OUTPUT
+          echo "CHART_DIR=charts/${{ matrix.chart }}" >> $GITHUB_OUTPUT
       - name: Set up ChartMuseum
         run: |
           docker run -d -p 8080:8080 --name source-chartmuseum --tmpfs /charts chartmuseum/chartmuseum:latest --storage="local" --storage-local-rootdir="/charts"
@@ -45,17 +47,17 @@ jobs:
       - name: Update chart tag
         run: |
           image_tag=${{ steps.init-variable.outputs.IMAGE_TAG }}
-          sed -i "s/latest/${image_tag}/g" ${{ env.HELM_CHARTS_DIR }}/values.yaml
+          sed -i "s/latest/${image_tag}/g" ${{ steps.init-variable.outputs.CHART_DIR }}/values.yaml 
           chart_smever=${{ steps.init-variable.outputs.CHART_SMEVER }}
-          sed -i "s/0.1.0/${chart_smever}/g" ${{ env.HELM_CHARTS_DIR }}/Chart.yaml
+          sed -i "s/0.1.0/${chart_smever}/g" ${{ steps.init-variable.outputs.CHART_DIR }}/Chart.yaml
       - name: Create helm chart package
         run: |
-          helm package ${{ env.HELM_CHARTS_DIR }} --destination ./amamba-charts/docs/
+          helm package ${{ steps.init-variable.outputs.CHART_DIR }} --destination ./amamba-charts/docs/
           ls -l ./amamba-charts/docs/
       - name: Push Helm Chart to Source ChartMuseum
         run: |
           helm repo add source-chartmuseum ${{ env.SOURCE_CONTAINER_REGISTRY }}
-          helm cm-push ./amamba-charts/docs/${{ env.HELM_CHARTS_NAME }}-${{ steps.init-variable.outputs.CHART_SMEVER }}.tgz source-chartmuseum
+          helm cm-push ./amamba-charts/docs/${{ matrix.chart }}-${{ steps.init-variable.outputs.CHART_SMEVER }}.tgz source-chartmuseum
       - name: Sync charts using Chart-Syncer
         run: |
           cat <<EOF > syncer-config.yaml
@@ -71,7 +73,7 @@ jobs:
               kind: "CHARTMUSEUM"
               url: ${{ env.TARGET_CONTAINER_REGISTRY }}
           charts:
-            - name: ${{ env.HELM_CHARTS_NAME }}
+            - name: ${{ matrix.chart }}
               versions:
                 - ${{ steps.init-variable.outputs.CHART_SMEVER }}
           EOF
@@ -83,17 +85,17 @@ jobs:
           helm repo add target-chartmuseum ${{ env.TARGET_CONTAINER_REGISTRY }}
           helm repo update
           chart_smever=${{ steps.init-variable.outputs.CHART_SMEVER }}
-          helm search repo target-chartmuseum/${{ env.HELM_CHARTS_NAME }} --version $chart_smever || exit 1
-          IMAGE_LIST=`helm template test target-chartmuseum/${{ env.HELM_CHARTS_NAME }} --version $chart_smever --set trace.enabled=true --set eventProxy.enabled=true | grep "image: " | awk -F'[: "]+' '{print $3":"$4}' | sort | uniq`
+          helm search repo target-chartmuseum/${{ matrix.chart }} --version $chart_smever || exit 1
+          IMAGE_LIST=`helm template test target-chartmuseum/${{ matrix.chart }} --version $chart_smever --set trace.enabled=true --set eventProxy.enabled=true | grep "image: " | awk -F'[: "]+' '{print $3":"$4}' | sort | uniq`
           if [ -z "${IMAGE_LIST}" ] ; then 
-              echo "error, failed to find image from chart template for ${{ env.HELM_CHARTS_NAME }}" 
+              echo "error, failed to find image from chart template for ${{ matrix.chart }}" 
               exit 1 
           else 
-            echo "found image from ${{ env.HELM_CHARTS_NAME }} chart template: ${IMAGE_LIST} "
+            echo "found image from ${{ matrix.chart }} chart template: ${IMAGE_LIST} "
             for IMAGE in ${IMAGE_LIST} ; do
               echo image: ${IMAGE}
               if [[ ${IMAGE} != ${{ env.TEST_CONTAINER_REGISTRY }}* ]] ; then 
-                  echo "error, failed to check image ${IMAGE} from chart template for ${{ env.HELM_CHARTS_NAME }}, because the image registry has not been replaced"
+                  echo "error, failed to check image ${IMAGE} from chart template for ${{ matrix.chart }}, because the image registry has not been replaced"
                   exit 1
               fi
             done
@@ -102,7 +104,7 @@ jobs:
               echo image: ${IMAGE}
               LEN=`echo ${IMAGE} | awk -F '/' '{print NF}'` 
               if [[ ${LEN} -lt 3 ]] ; then 
-                  echo "error, failed to check image ${IMAGE} from chart template for ${{ env.HELM_CHARTS_NAME }}, because the image does not have repository" 
+                  echo "error, failed to check image ${IMAGE} from chart template for ${{ matrix.chart }}, because the image does not have repository" 
                   exit 1 
               fi
             done 

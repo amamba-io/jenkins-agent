@@ -368,13 +368,13 @@ Agent:
       # must build image first.
     Maven:
       Image: amamba-io/jenkins-agent-maven
-      ImageTag: latest-jdk8-ubuntu
+      ImageTag: latest-jdk8
     Golang:
       Image: amamba-io/jenkins-agent-go
-      ImageTag: latest-1.22.6-ubuntu
+      ImageTag: latest-1.22.6
     Python:
       Image: amamba-io/jenkins-agent-python
-      ImageTag: latest-3.8.19-ubuntu
+      ImageTag: latest-3.8.19
     ContainerRuntime: podman # Available values: docker, podman
 
 Persistence:
