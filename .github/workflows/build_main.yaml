@@ -123,6 +123,16 @@ jobs:
           docker manifest push "${latestImg}"
           docker manifest push "${commitPodmanImg}"
           docker manifest push "${latestPodmanImg}"
+
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitPodmanImg} docker://${commitPodmanImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestPodmanImg} docker://${latestPodmanImg}
+
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${commitPodmanImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitPodmanImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestPodmanImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestPodmanImg} is not in oci format" ; exit 1 ;}
   build-deprecated-agent-centos:
     needs: [init-variable, push-jenkins-agent-base-manifest]
     uses: ./.github/workflows/build_deprecated_agent_image.yaml
@@ -179,6 +189,11 @@ jobs:
 
           docker manifest push "${commitImg}"
           docker manifest push "${latestImg}"
+
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
   build-agent-python-amd:
     needs: [init-variable, push-jenkins-agent-base-manifest]
     uses: ./.github/workflows/build_agent_image_amd.yaml
@@ -229,6 +244,11 @@ jobs:
 
           docker manifest push "${commitImg}"
           docker manifest push "${latestImg}"
+
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
   build-agent-golang-amd:
     needs: [init-variable, push-jenkins-agent-base-manifest]
     uses: ./.github/workflows/build_agent_image_amd.yaml
@@ -279,6 +299,11 @@ jobs:
 
           docker manifest push "${commitImg}"
           docker manifest push "${latestImg}"
+
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
   build-agent-maven-amd:
     needs: [init-variable, push-jenkins-agent-base-manifest]
     uses: ./.github/workflows/build_agent_image_amd.yaml
@@ -332,6 +357,11 @@ jobs:
 
           docker manifest push "${commitImg}"
           docker manifest push "${latestImg}"
+
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
   validate-relok8s-images:
     needs: [init-variable, build-jenkins, push-jenkins-agent-base-manifest, push-jenkins-agent-nodejs-manifest, push-jenkins-agent-python-manifest, push-jenkins-agent-golang-manifest, push-jenkins-agent-maven-manifest]
     uses: ./.github/workflows/check_relok8s.yaml
