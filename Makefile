@@ -62,9 +62,7 @@ install-conftest:
 
 .PHONY: conftest
 conftest: install-conftest
-	echo "⚠️⚠️⚠️when you change the jenkins chart or rego files, you should run this command and copy tmp.yaml to IDE to format it, and then run conftest. otherwise, it will not return any error.⚠️⚠️⚠️"
-    # fixme: templated yaml are not valid yaml files (for rego), rego not detect the correct 'containers', maybe is a bug of conftest
-
+	#if policy is not effective, please check the yaml indent.
 	helm template  jenkins ./charts/jenkins-full --debug -n jenkins -f test/default-registry/values.yaml > tmp.yaml
 	conftest test -o $(OUTPUT) --policy test/default-registry/full tmp.yaml
 
@@ -97,3 +95,8 @@ opa-test: install-opa
 .PHONY: update-agents-version
 update-agents-version:
 	./hack/update_agent_version.sh
+
+.PHONY: check_casc_config
+check_casc_config:
+	./hack/check_casc_config.sh jenkins ./charts/jenkins
+	./hack/check_casc_config.sh jenkins-full ./charts/jenkins-full
