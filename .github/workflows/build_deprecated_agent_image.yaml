@@ -136,7 +136,12 @@ jobs:
           docker manifest create "${latestImg}" "${latestImg}-amd64" "${latestImg}-arm64"
           
           docker manifest push "${commitImg}"
-          docker manifest push "${latestImg}"        
+          docker manifest push "${latestImg}"   
+          
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
 
   build-agent-python-amd:
     strategy:
@@ -265,7 +270,12 @@ jobs:
           docker manifest create "${latestImg}" "${latestImg}-amd64" "${latestImg}-arm64"
           
           docker manifest push "${commitImg}"
-          docker manifest push "${latestImg}"        
+          docker manifest push "${latestImg}"     
+          
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
 
   build-agent-go-amd:
     strategy:
@@ -395,7 +405,11 @@ jobs:
           
           docker manifest push "${commitImg}"
           docker manifest push "${latestImg}"
-
+          
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
   build-agent-maven-amd:
     strategy:
       matrix:
@@ -546,3 +560,8 @@ jobs:
           
           docker manifest push "${commitImg}"
           docker manifest push "${latestImg}"
+          
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${commitImg} docker://${commitImg}
+          skopeo copy -f oci  --multi-arch all --retry-times 3 docker://${latestImg} docker://${latestImg}
+          skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
+          skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
