@@ -7,8 +7,8 @@ Master:
     # Name of the Kubernetes scheduler to use
     SchedulerName: ""
   Name: jenkins-master
-  Image: "amamba-io/jenkins"
-  ImageTag: "${VERSION}-2.413"
+  Image: "amambadev/jenkins"
+  ImageTag: "${VERSION}-2.443"
 
 Agent:
   Image: "amamba-io/inbound-agent"

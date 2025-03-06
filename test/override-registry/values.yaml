@@ -1,6 +1,9 @@
 global:
   imageRegistry: my-company.com
 
+Master:
+  ImageTag: latest-2.413
+
 trace:
   enabled: true
 
