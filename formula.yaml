@@ -508,15 +508,23 @@ plugins:
   - groupId: io.jenkins.plugins.mina-sshd-api
     artifactId: mina-sshd-api-common
     source:
-      version: 2.14.0-143.v2b_362fc39576
+      version: 2.15.0-161.vb_200831a_c15b_
   - groupId: io.jenkins.plugins.mina-sshd-api
     artifactId: mina-sshd-api-core
     source:
-      version: 2.14.0-143.v2b_362fc39576
+      version: 2.15.0-161.vb_200831a_c15b_
   - groupId: io.jenkins.plugins
     artifactId: prism-api
     source:
       version: 1.30.0-1
+  - groupId: org.jenkins-ci.plugins
+    artifactId: docker-commons
+    source:
+      version: 451.vd12c371eeeb_3
+  - groupId: org.jenkins-ci.plugins
+    artifactId: docker-workflow
+    source:
+      version: 611.v16e84da_6d3ff
 systemProperties:
   { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
 groovyHooks:
