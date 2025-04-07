@@ -12,7 +12,7 @@ plugins:
   - groupId: io.jenkins
     artifactId: configuration-as-code
     source:
-      version: 1947.v7d33fe23569c
+      version: 1950.v506f96a_69516
   - groupId: io.jenkins.blueocean
     artifactId: blueocean
     source:
@@ -525,6 +525,42 @@ plugins:
     artifactId: docker-workflow
     source:
       version: 611.v16e84da_6d3ff
+  - groupId: io.jenkins.blueocean
+    artifactId: blueocean-executor-info
+    source:
+      version: 1.27.17
+  - groupId: org.jenkins-ci.plugins
+    artifactId: cloudbees-disk-usage-simple
+    source:
+      version: 239.v6a_f1a_c1c8046
+  - groupId: org.jenkins-ci.plugins
+    artifactId: conditional-buildstep
+    source:
+      version: 1.5.0
+  - groupId: org.jenkins-ci.plugins
+    artifactId: google-oauth-plugin
+    source:
+      version: 1.335.ve6de40e2db_18
+  - groupId: org.jenkins-ci.plugins
+    artifactId: jsch
+    source:
+      version: 0.2.16-95.v3eecb_55fa_b_78
+  - groupId: com.cloudbees.jenkins.plugins
+    artifactId: kubernetes-credentials-provider
+    source:
+      version: 1.276.v99a_de03cb_076
+  - groupId: org.jenkins-ci.main
+    artifactId: maven-plugin
+    source:
+      version: "3.25"
+  - groupId: org.jenkins-ci.plugins
+    artifactId: oauth-credentials
+    source:
+      version: 0.657.v7d8dd90b_0382
+  - groupId: io.jenkins.plugins
+    artifactId: oss-symbols-api
+    source:
+      version: 313.vd9dc470e16a_0
 systemProperties:
   { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
 groovyHooks:

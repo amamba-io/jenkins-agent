@@ -58,6 +58,9 @@ jenkins的密码可以在控制台看到，或者在 $JENKINS_HOME/secrets/initi
 
 ### 更新formula.yaml
 
+如果有新增插件，注意需要在 formula.core.yaml 中添加. 是否添加为 core plugin可以根据插件页面中是否可以关闭来进行判断(如果不可以关闭，则不是core plugin,不需要添加到 formula.core.yaml 中,它会被自动下载)；
+![img.png](./images/core-plugin.png)
+
 当通过页面更新完插件以后，执行以下命令将插件信息导出到yaml文件中；
 
 ```shell
@@ -82,6 +85,8 @@ go run hack/update-formula/updateformula.go
 ```shell
 jcli cwp --install-artifacts --config-path formula.yaml --batch-mode --show-progress  
 ```
+> 构建的时候最好使用 java 8， 否则可能会报错：Unable to make field private final java.util.Comparator java.util.TreeMap.comparator accessible
+> 通过 export JAVA_HOME=/path/to/jdk 来指定构建和运行的jdk版本. 推荐的版本（构建war包时使用java 8, 运行时使用java 17）
 
 构建完成后会在 `tmp/output/target` 目录下生成jenkins-1.0-SNAPSHOT.war文件，war包中已经包含了插件，可以直接运行；
 
