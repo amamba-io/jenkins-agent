@@ -133,6 +133,14 @@ plugins:
     artifactId: maven-plugin
     source:
       version: "3.25"
+  - groupId: jp.ikedam.jenkins.plugins
+    artifactId: extensible-choice-parameter
+    source:
+      version: 237.v51568f37b_78e
+  - groupId: org.jenkins-ci.plugins
+    artifactId: extended-choice-parameter
+    source:
+      version: 388.ve7b_d0b_920e10
 systemProperties:
   { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
 groovyHooks:

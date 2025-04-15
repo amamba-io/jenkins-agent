@@ -187,6 +187,33 @@ data:
       <enabled>false</enabled>
 {{- end }}
     </jenkins.CLI>
+  jp.ikedam.jenkins.plugins.extensible_choice_parameter.ExtensibleChoiceParameterDefinition.xml: |-
+    <?xml version='1.1' encoding='UTF-8'?>
+    <jp.ikedam.jenkins.plugins.extensible__choice__parameter.ExtensibleChoiceParameterDefinition_-DescriptorImpl plugin="extensible-choice-parameter@237.v51568f37b_78e">
+      <choiceListEnabledMap>
+        <entry>
+          <string>jp.ikedam.jenkins.plugins.extensible_choice_parameter.TextareaChoiceListProvider</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>jp.ikedam.jenkins.plugins.extensible_choice_parameter.FilenameChoiceListProvider</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>jp.ikedam.jenkins.plugins.extensible_choice_parameter.GlobalTextareaChoiceListProvider</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>jp.ikedam.jenkins.plugins.extensible_choice_parameter.SystemGroovyChoiceListProvider</string>
+          <boolean>true</boolean>
+        </entry>
+      </choiceListEnabledMap>
+    </jp.ikedam.jenkins.plugins.extensible__choice__parameter.ExtensibleChoiceParameterDefinition_-DescriptorImpl>
+  jp.ikedam.jenkins.plugins.extensible_choice_parameter.GlobalTextareaChoiceListProvider.xml: |-
+    <?xml version='1.1' encoding='UTF-8'?>
+    <jp.ikedam.jenkins.plugins.extensible__choice__parameter.GlobalTextareaChoiceListProvider_-DescriptorImpl plugin="extensible-choice-parameter@237.v51568f37b_78e">
+      <choiceListEntryList/>
+    </jp.ikedam.jenkins.plugins.extensible__choice__parameter.GlobalTextareaChoiceListProvider_-DescriptorImpl>
   apply_config.sh: |-
     mkdir -p /usr/share/jenkins/ref/secrets/;
     echo "false" > /usr/share/jenkins/ref/secrets/slave-to-master-security-kill-switch;
@@ -199,6 +226,8 @@ data:
     cp --no-clobber /var/jenkins_config/jenkins.CLI.xml /var/jenkins_home;
     cp --no-clobber /var/jenkins_config/jenkins.model.JenkinsLocationConfiguration.xml /var/jenkins_home;
 {{- end }}
+    cp -f /var/jenkins_config/jp.ikedam.jenkins.plugins.extensible_choice_parameter.ExtensibleChoiceParameterDefinition.xml /var/jenkins_home;
+    cp -f /var/jenkins_config/jp.ikedam.jenkins.plugins.extensible_choice_parameter.GlobalTextareaChoiceListProvider.xml /var/jenkins_home;
 {{- if .Values.Master.ScriptApproval }}
     cp -n /var/jenkins_config/scriptapproval.xml /var/jenkins_home/scriptApproval.xml;
 {{- end }}
