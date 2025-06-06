@@ -306,7 +306,15 @@ Master:
   NodeSelector: {}
   Tolerations: {}
   PodAnnotations: {}
-
+  ## @param Master.RegistryConfig controls the container registry configuration for podman running in agent.
+  ## The format refers https://github.com/containers/image/blob/main/docs/containers-registries.conf.5.md
+  ## for example, to add an insecure registry, you can set the following:
+  ## RegistryConfig: |
+  ##  [[registry]]
+  ##  location = "10.6.182.195:5000"
+  ##  insecure = true
+  registryConfig: ""
+  
   Ingress:
     ApiVersion: networking.k8s.io/v1
     Annotations: {}
