@@ -3,7 +3,7 @@ package main
 import future.keywords.every
 import future.keywords.if
 
-deny[msg] {
+deny contains msg if {
 	input.kind == "Deployment"
 	container := input.spec.template.spec.initContainers[_]
 	not is_copy_default_config_image(container)
@@ -22,7 +22,7 @@ is_instrumentation_image(container) if {
 	container.image == "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:1.17.0"
 }
 
-deny[msg] {
+deny contains msg if {
 	input.kind == "Deployment"
 	container := input.spec.template.spec.containers[_]
 	not is_jenkins_image(container)
@@ -42,7 +42,7 @@ is_event_proxy_image(container) if {
 }
 
 
-deny[msg] {
+deny contains msg if {
 	input.kind == "ConfigMap"
 	input.metadata.name == "jenkins-casc-config"
 

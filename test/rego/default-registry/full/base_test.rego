@@ -1,45 +1,45 @@
 package main
 
-empty(value) {
+empty(value) if {
 	count(value) == 0
 }
 
-no_violations {
+no_violations if {
 	empty(deny)
 }
 
-test_casc_with_valid_image {
-	input := {
+test_casc_with_valid_image if {
+	tests := {
 		"apiVersion": "v1",
 		"kind": "ConfigMap",
 		"metadata": {"name": "jenkins-casc-config"},
 		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n"},
 	}
-	no_violations with input as input
+	no_violations with input as tests 
 }
 
-test_casc_with_invalid_base {
-	input := {
+test_casc_with_invalid_base if {
+	tests := {
 		"apiVersion": "v1",
 		"kind": "ConfigMap",
 		"metadata": {"name": "jenkins-casc-config"},
 		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n"},
 	}
-	deny["'base' should not use image: 'base:latest'"] with input as input
+	deny["'base' should not use image: 'base:latest'"] with input as tests
 }
 
-test_casc_with_invalid_jnlp {
-	input := {
+test_casc_with_invalid_jnlp if {
+	tests := {
 		"apiVersion": "v1",
 		"kind": "ConfigMap",
 		"metadata": {"name": "jenkins-casc-config"},
 		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n"},
 	}
-	deny["'jnlp' should not use image: 'inbound-agent:jdk21'"] with input as input
+	deny["'jnlp' should not use image: 'inbound-agent:jdk21'"] with input as tests
 }
 
-test_default_deployments_image {
-	input := {
+test_default_deployments_image if {
+	tests := {
 		"kind": "Deployment",
 		"metadata": {"name": "jenkins"},
 		"spec": {"template": {"spec": {
@@ -65,11 +65,11 @@ test_default_deployments_image {
 			],
 		}}},
 	}
-	no_violations with input as input
+	no_violations with input as tests
 }
 
-test_cotainers_missing {
-	input := {
+test_cotainers_missing if {
+	tests := {
 		"kind": "Deployment",
 		"metadata": {"name": "jenkins"},
 		"spec": {"template": {"spec": {
@@ -83,6 +83,6 @@ test_cotainers_missing {
 			}],
 		}}},
 	}
-	deny["'opentelemetry-auto-instrumentation' is not enabled"] with input as input
-	deny["'event-proxy' is not enabled"] with input as input
+	deny["'opentelemetry-auto-instrumentation' is not enabled"] with input as tests
+	deny["'event-proxy' is not enabled"] with input as tests
 }

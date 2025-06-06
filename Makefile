@@ -63,25 +63,7 @@ install-conftest:
 .PHONY: conftest
 conftest: install-conftest
 	#if policy is not effective, please check the yaml indent.
-	helm template  jenkins ./charts/jenkins-full --debug -n jenkins -f test/default-registry/values.yaml > tmp.yaml
-	conftest test -o $(OUTPUT) --policy test/default-registry/full tmp.yaml
-
-	helm template  jenkins ./charts/jenkins --debug -n jenkins -f test/default-registry/values.yaml > tmp.yaml
-	conftest test -o $(OUTPUT) --policy test/default-registry/base tmp.yaml
-
-	helm template  jenkins ./charts/jenkins-full --debug -n jenkins -f test/override-registry/values.yaml > tmp.yaml
-	conftest test -o $(OUTPUT) --policy test/override-registry/full tmp.yaml
-
-	helm template  jenkins ./charts/jenkins --debug -n jenkins -f test/override-registry/values.yaml > tmp.yaml
-	conftest test -o $(OUTPUT) --policy test/override-registry/base tmp.yaml
-
-	helm template  jenkins ./charts/jenkins-full --debug -n jenkins -f test/runtime/values.yaml > tmp.yaml
-	conftest test -o $(OUTPUT) --policy test/runtime/full tmp.yaml
-
-	helm template  jenkins ./charts/jenkins --debug -n jenkins -f test/runtime/values.yaml > tmp.yaml
-	conftest test -o $(OUTPUT) --policy test/runtime/base tmp.yaml
-
-	rm tmp.yaml
+	OUTPUT=$(OUTPUT) ./hack/test-chart.sh
 
 .PHONY: install-opa
 install-opa:

@@ -64,45 +64,10 @@ function update_github_ci() {
 }
 
 function update_rego() {
-    base_path=$1
-    rego_file=$base_path"/deny.rego"
-    suffix=$2
-    output="agents_output.tmp"
-    agents=$(yq eval '.Agent' "$version_file")
-
-    {
-      echo "package main"
-      echo "agents := {"
-      echo '  "base": {"container": "base", "image": "ghcr.io/amamba-io/jenkins-agent-base:latest'"${suffix}"'"},'
-
-      for lang in $(echo "$agents" | yq eval 'keys' - | sed 's/- //g'); do
-        lang_lower=$(echo "$lang" | tr '[:upper:]' '[:lower:]')
-        versions=$(yq eval ".Agent.${lang}[]" "$version_file")
-
-        if [ "$lang_lower" == "golang" ]; then
-          lang_lower="go"
-        fi
-
-        first_version=true
-        for version in $versions; do
-          if [[ "$first_version" == true ]]; then
-            if [[ "${lang_lower}" == "maven" ]] || [[ "${lang_lower}" == "go" ]]; then
-              echo '  "'"${lang_lower}"'": {"container": "'"${lang_lower}"'", "image": "ghcr.io/amamba-io/jenkins-agent-'"${lang_lower}"':latest-'"${version}"'-ubuntu'"${suffix}"'"},'
-              first_version=false
-            else
-              echo '  "'"${lang_lower}"'": {"container": "'"${lang_lower}"'", "image": "ghcr.io/amamba-io/jenkins-agent-'"${lang_lower}"':latest-'"${version}""${suffix}"'"},'
-              first_version=false
-            fi
-          else
-            echo '  "'"${lang_lower}"'-'"${version}"'": {"container": "'"${lang_lower}"'", "image": "ghcr.io/amamba-io/jenkins-agent-'"${lang_lower}"':latest-'"${version}"'-ubuntu'"${suffix}"'"},'
-          fi
-        done
-      done | sed '$ s/,$//'
-
-      echo "}"
-    } > $base_path"/agents.rego"
-    rm -f $output
-    echo "rego file $base_path/deny.rego updated successfully."
+    python hack/gen-agents-rego.py charts/jenkins-full/values.yaml test/rego/default-registry/full/agents.rego 
+    python hack/gen-agents-rego.py charts/jenkins/values.yaml test/rego/default-registry/base/agents.rego 
+    python hack/gen-agents-rego.py charts/jenkins-full/values.yaml test/rego/runtime/full/agents.rego false
+    python hack/gen-agents-rego.py charts/jenkins/values.yaml test/rego/runtime/base/agents.rego false
 }
 
 function process_builder() {
@@ -150,5 +115,4 @@ function update_relok8s_images() {
 update_chart_value
 update_github_ci
 update_relok8s_images
-update_rego "test/default-registry" "-podman"
-update_rego "test/runtime" ""
+update_rego
