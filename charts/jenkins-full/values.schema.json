@@ -74,6 +74,31 @@
                 "NodePort": {
                     "type": ["integer", "null"]
                 },
+                "SecurityRealm": {
+                    "type": "object",
+                    "properties": {
+                        "clientID": {
+                            "type": "string",
+                            "default": ""
+                        },
+                        "clientSecret": {
+                            "type": "string",
+                            "default": ""
+                        },
+                        "enableExternalAuth": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "externalAuthServiceUrl": {
+                            "type": "string",
+                            "default": ""
+                        },
+                        "wellKnownOpenIDConfigurationUrl": {
+                            "type": "string",
+                            "default": ""
+                        }
+                    }
+                },
                 "ServicePort": {
                     "type": "integer",
                     "default": 80

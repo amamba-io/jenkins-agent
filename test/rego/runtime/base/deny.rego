@@ -1,12 +1,10 @@
 package main
 
-import future.keywords.every
-import future.keywords.if
-
 deny contains msg if {
 	input.kind == "Deployment"
 	container := input.spec.template.spec.initContainers[_]
 	not is_copy_default_config_image(container)
+	not is_copy_auth_plugin_image(container)
 	not is_instrumentation_image(container)
 
 	msg := sprintf("%v should not use image: '%v'", [container.name, container.image])
@@ -14,6 +12,11 @@ deny contains msg if {
 
 is_copy_default_config_image(container) if {
 	container.name == "copy-default-config"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
+}
+
+is_copy_auth_plugin_image(container) if {
+	container.name == "copy-auth-plugin"
 	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
 }
 
@@ -39,6 +42,18 @@ is_jenkins_image(container) if {
 is_event_proxy_image(container) if {
 	container.name == "event-proxy"
 	container.image == "release.daocloud.io/amamba/amamba-event-proxy:v0.18.0-alpha.0"
+}
+
+deny contains msg if {
+	input.kind == "Deployment"
+	not has_container(input.spec.template.spec.initContainers, "copy-auth-plugin")
+
+	msg := "'copy-auth-plugin' is not enabled"
+}
+
+has_container(containers, name) if {
+	some i
+	containers[i].name == name
 }
 
 

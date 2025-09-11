@@ -358,7 +358,22 @@ data:
                     securityContext:
                       fsGroup: 1000
       securityRealm:
-      authorizationStrategy: loggedInUsersCanDoAnything
+        oic:
+          clientId: {{ .Values.Master.SecurityRealm.clientID }}
+          clientSecret: {{ .Values.Master.SecurityRealm.clientSecret }}
+          disableSslVerification: {{ .Values.Master.SecurityRealm.disableSslVerification }}
+          enableExternalAuth: {{ .Values.Master.SecurityRealm.enableExternalAuth }}
+          escapeHatchEnabled: true
+          escapeHatchSecret: {{ include "jenkins.password" . | trimAll "\"" | b64dec}}
+          escapeHatchUsername: {{ .Values.Master.AdminUser  }}
+          externalAuthServiceUrl: "{{ .Values.Master.SecurityRealm.externalAuthServiceUrl }}"
+          groupIdStrategy: {{ .Values.Master.SecurityRealm.idStrategy }}
+          serverConfiguration:
+            wellKnown:
+              wellKnownOpenIDConfigurationUrl: "{{ .Values.Master.SecurityRealm.wellKnownOpenIDConfigurationUrl }}"
+          userIdStrategy: {{ .Values.Master.SecurityRealm.idStrategy }}
+          userNameField: {{ .Values.Master.SecurityRealm.userNameField }}
+      authorizationStrategy: {{ toYaml .Values.Master.AuthorizationStrategy | nindent 8 }}
     unclassified:
       location:
         url: {{ include "location.url" . }}

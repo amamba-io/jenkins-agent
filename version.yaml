@@ -18,3 +18,6 @@ Agent:
     - 16.20.2
     - 18.20.4
     - 20.17.0
+
+# https://github.com/amamba-io/daocloud-oic-auth-plugin/releases/tag
+AuthPlugin: v0.0.1-rc3

@@ -75,9 +75,13 @@
 
 - name: Install Pip3
   raw: wget -q https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && rm get-pip.py && ln -s /usr/local/bin/pip3 /usr/bin/pip
-  when: python_version is defined and python_version != "" and python_major_version == "3"
+  when: python_version is defined and python_version != "" and python_major_version == "3" and python_major_minor_version != "3.8"
   retries: 3
   delay: 5
+
+- name: Install Pip3 for 3.8
+  raw: wget -q https://bootstrap.pypa.io/pip/3.8/get-pip.py && python3 get-pip.py && rm get-pip.py && ln -s /usr/local/bin/pip3 /usr/bin/pip
+  when: python_version is defined and python_version != "" and python_major_minor_version == "3.8"
 
 - name: Install Pip
   raw:

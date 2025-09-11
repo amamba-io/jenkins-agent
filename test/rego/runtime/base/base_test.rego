@@ -45,6 +45,10 @@ test_default_deployments_image if {
 		"spec": {"template": {"spec": {
 			"initContainers": [
 				{
+					"name": "copy-auth-plugin",
+					"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
+				},
+				{
 					"name": "copy-default-config",
 					"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
 				},
@@ -83,6 +87,5 @@ test_cotainers_missing if {
 			}],
 		}}},
 	}
-	deny["'opentelemetry-auto-instrumentation' is not enabled"] with input as tests
-	deny["'event-proxy' is not enabled"] with input as tests
+	deny["'copy-auth-plugin' is not enabled"] with input as tests
 }

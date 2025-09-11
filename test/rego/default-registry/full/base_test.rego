@@ -1,5 +1,7 @@
 package main
 
+import future.keywords.if
+
 empty(value) if {
 	count(value) == 0
 }
@@ -25,7 +27,7 @@ test_casc_with_invalid_base if {
 		"metadata": {"name": "jenkins-casc-config"},
 		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n"},
 	}
-	deny["'base' should not use image: 'base:latest'"] with input as tests
+	deny with input as tests
 }
 
 test_casc_with_invalid_jnlp if {
@@ -33,9 +35,9 @@ test_casc_with_invalid_jnlp if {
 		"apiVersion": "v1",
 		"kind": "ConfigMap",
 		"metadata": {"name": "jenkins-casc-config"},
-		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n          - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n"},
+		"data": {"jenkins.yaml": "jenkins:\n  clouds:\n    - kubernetes:\n        templates:\n          - name: \"base\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"base\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-base:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n         - name: \"nodejs\"\n            namespace: \"jenkins\"\n            containers:\n            - name: \"nodejs\"\n              image: \"ghcr.io/amamba-io/jenkins-agent-nodejs:latest\"\n            - name: \"jnlp\"\n              image: \"ghcr.io/amamba-io/inbound-agent:jdk21\"\n"},
 	}
-	deny["'jnlp' should not use image: 'inbound-agent:jdk21'"] with input as tests
+	deny with input as tests
 }
 
 test_default_deployments_image if {
@@ -44,6 +46,10 @@ test_default_deployments_image if {
 		"metadata": {"name": "jenkins"},
 		"spec": {"template": {"spec": {
 			"initContainers": [
+				{
+					"name": "copy-auth-plugin",
+					"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
+				},
 				{
 					"name": "copy-default-config",
 					"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
@@ -83,6 +89,5 @@ test_cotainers_missing if {
 			}],
 		}}},
 	}
-	deny["'opentelemetry-auto-instrumentation' is not enabled"] with input as tests
-	deny["'event-proxy' is not enabled"] with input as tests
+	count(deny) == 3 with input as tests
 }

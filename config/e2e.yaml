@@ -10,6 +10,8 @@ Master:
   Image: "amamba-io/jenkins"
   ImageTag: "${VERSION}-2.502"
 
+fullnameOverride: jenkins
+
 Agent:
   Image: "amamba-io/inbound-agent"
   ImageTag: jdk21
