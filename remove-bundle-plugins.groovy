@@ -40,6 +40,10 @@ Thread.start {
         File pluginsDir = new File(instance.getRootDir(), "/war/WEB-INF/plugins");
         if (pluginsDir.isDirectory()) {
             for(String plugin : pluginsDir.list()) {
+                if (plugin == "daocloud-oic-auth.hpi") {
+                    println "skip plugin " + plugin
+                    continue
+                }
                 boolean result = new File(pluginsDir, plugin).delete();
                 println "delete plugin " + plugin + " " + result
             }
