@@ -10,9 +10,12 @@ RUN mv /tmp/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin
 COPY formula.yaml /
 COPY remove-bundle-plugins.groovy /
 WORKDIR /
+RUN ./hack/download_auth_plugin_hpi.sh -v
 RUN jcli cwp --install-artifacts --config-path formula.yaml --batch-mode --show-progress
 
 FROM jenkins/jenkins:2.502
 COPY --from=build /tmp/output/target/jenkins-1.0-SNAPSHOT.war /usr/share/jenkins/jenkins.war
+COPY --from=build /tmp/daocloud-oic-auth.hpi /var/jenkins_home/plugins/daocloud-oic-auth.hpi
 ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
+RUN ls -al /var/jenkins_home/plugins/
 ENTRYPOINT ["tini", "--", "/usr/local/bin/jenkins.sh"]
