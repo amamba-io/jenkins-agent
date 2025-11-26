@@ -28,7 +28,6 @@ data:
                 label: "base"
                 nodeUsageMode: "NORMAL"
                 idleMinutes: 0
-                serviceAccount: {{ if .Values.rbac.install }}{{ template "jenkins.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
                 containers:
                 - name: "base"
                   image: "{{ include "builder.image" (dict "builder" .Values.Agent.Builder.Base "root" . "os" "ubuntu") -}}"
@@ -89,7 +88,6 @@ data:
                 label: "nodejs"
                 nodeUsageMode: "EXCLUSIVE"
                 idleMinutes: 0
-                serviceAccount: {{ if .Values.rbac.install }}{{ template "jenkins.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
                 containers:
                 - name: "nodejs"
                   image: "{{ include "builder.image" (dict "builder" .Values.Agent.Builder.NodeJs "root" . "os" "ubuntu") -}}"
@@ -156,7 +154,6 @@ data:
                 label: "maven"
                 nodeUsageMode: "EXCLUSIVE"
                 idleMinutes: 0
-                serviceAccount: {{ if .Values.rbac.install }}{{ template "jenkins.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
                 containers:
                 - name: "maven"
                   image: "{{ include "builder.image" ( dict "builder" .Values.Agent.Builder.Maven "root" . "os" "ubuntu") -}}"
@@ -231,7 +228,6 @@ data:
                 label: "go"
                 nodeUsageMode: "EXCLUSIVE"
                 idleMinutes: 0
-                serviceAccount: {{ if .Values.rbac.install }}{{ template "jenkins.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
                 containers:
                 - name: "go"
                   image: "{{ include "builder.image" (dict "builder" .Values.Agent.Builder.Golang "root" . "os" "ubuntu") -}}"
@@ -295,7 +291,6 @@ data:
                 label: "python"
                 nodeUsageMode: "EXCLUSIVE"
                 idleMinutes: 0
-                serviceAccount: {{ if .Values.rbac.install }}{{ template "jenkins.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
                 containers:
                 - name: "python"
                   image: "{{ include "builder.image" (dict "builder" .Values.Agent.Builder.Python "root" . "os" "ubuntu") -}}"
