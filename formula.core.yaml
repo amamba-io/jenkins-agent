@@ -12,7 +12,7 @@ plugins:
   - groupId: io.jenkins
     artifactId: configuration-as-code
     source:
-      version: 1950.v506f96a_69516
+      version: 1963.v24e046127a_3f
   - groupId: io.jenkins.blueocean
     artifactId: blueocean
     source:
@@ -133,6 +133,10 @@ plugins:
     artifactId: maven-plugin
     source:
       version: "3.25"
+  - groupId: org.jenkins-ci.tools
+    artifactId: git-parameter
+    source:
+      version: 460.v71e7583a_c099
 systemProperties:
   { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
 groovyHooks:
