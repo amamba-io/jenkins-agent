@@ -34,9 +34,9 @@ jobs:
           echo "CHART_DIR=charts/${{ matrix.chart }}" >> $GITHUB_OUTPUT
       - name: Set up ChartMuseum
         run: |
-          docker run -d -p 8080:8080 --name source-chartmuseum --tmpfs /charts chartmuseum/chartmuseum:latest --storage="local" --storage-local-rootdir="/charts"
+          docker run -d -p 8080:8080 --name source-chartmuseum --tmpfs /charts:rw,mode=1777 chartmuseum/chartmuseum:latest --storage="local" --storage-local-rootdir="/charts"
           sleep 5
-          docker run -d -p 8081:8080 --name target-chartmuseum --tmpfs /charts chartmuseum/chartmuseum:latest --storage="local" --storage-local-rootdir="/charts"
+          docker run -d -p 8081:8080 --name target-chartmuseum --tmpfs /charts:rw,mode=1777 chartmuseum/chartmuseum:latest --storage="local" --storage-local-rootdir="/charts"
           sleep 5
       - name: Install chart-syncer
         run: |
