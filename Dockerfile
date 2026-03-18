@@ -1,10 +1,10 @@
 FROM --platform=linux/amd64 ubuntu:22.04 as build
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
 RUN sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
-RUN apt-get update -y && apt-get --no-install-recommends install wget default-jre ca-certificates maven bzip2 -y
-RUN wget -qP /tmp https://github.com/jenkins-zh/jenkins-cli/releases/latest/download/jcli-linux-amd64.tar.gz
+RUN apt-get update -y && apt-get --no-install-recommends install curl wget default-jre ca-certificates maven bzip2 -y
+RUN curl -fL --retry 3 --retry-delay 5 --connect-timeout 10 -o /tmp/jcli-linux-amd64.tar.gz https://github.com/jenkins-zh/jenkins-cli/releases/latest/download/jcli-linux-amd64.tar.gz
 RUN tar -xzf /tmp/jcli-linux-amd64.tar.gz -C /usr/local/bin
-RUN wget -qP /tmp https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
+RUN curl -fL --retry 3 --retry-delay 5 --connect-timeout 10 -o /tmp/phantomjs-2.1.1-linux-x86_64.tar.bz2 https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
 RUN tar -jxf /tmp/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C /tmp
 RUN mv /tmp/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin
 COPY formula.yaml /
