@@ -453,6 +453,12 @@ rbac:
   # Role kind (RoleBinding or ClusterRoleBinding)
   roleBindingKind: ClusterRoleBinding
 
+casc:
+  securityRealm:
+    local:
+      allowsSignup: false
+  authorizationStrategy: loggedInUsersCanDoAnything
+
 securityRealm:
   type: local # support values include local, ldap
 
