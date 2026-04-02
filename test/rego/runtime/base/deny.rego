@@ -82,3 +82,29 @@ find_unknown_images(container) := msg if {
 	not is_agent_image(container)
 	msg := sprintf("'%v' should not use image: '%v'", [container.name, container.image])
 }
+
+# Validate storage-conf ConfigMap
+deny contains msg if {
+	input.kind == "ConfigMap"
+	input.metadata.name == "storage-conf"
+	not contains_storage_section(input.data["storage.conf"])
+
+	msg := "storage.conf must contain [storage] section"
+}
+
+contains_storage_section(content) if {
+	regex.match(`\[storage\]`, content)
+}
+
+# Validate insecure-registries ConfigMap format
+deny contains msg if {
+	input.kind == "ConfigMap"
+	input.metadata.name == "insecure-registries"
+	not has_valid_registry_block(input.data["registries.conf"])
+
+	msg := "registries.conf must contain valid [[registry]] blocks"
+}
+
+has_valid_registry_block(content) if {
+	regex.match(`\[\[registry\]\].*location`, content)
+}

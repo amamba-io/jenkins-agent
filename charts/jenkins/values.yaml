@@ -403,6 +403,18 @@ Agent:
       Image: amamba-io/jenkins-agent-python
       ImageTag: latest-3.8.19
     ContainerRuntime: podman # Available values: docker, podman
+    # Registry configuration for podman (registries.conf content)
+    # If not set, the image-baked registries.conf will be used
+    # registriesConfig: |
+    #   [[registry]]
+    #   location = "harbor.example.com"
+    #   insecure = true
+    # Storage configuration for podman (storage.conf content)
+    # If not set, the image-baked storage.conf will be used
+    # storageConfig: |
+    #   [storage]
+    #   driver = "overlay"
+    #   ...
 
 Persistence:
   Enabled: true
