@@ -7,140 +7,140 @@ war:
   groupId: org.jenkins-ci.main
   artifactId: jenkins-war
   source:
-    version: 2.502
+    version: 2.541.3
 plugins:
-  - groupId: io.jenkins
-    artifactId: configuration-as-code
-    source:
-      version: 1963.v24e046127a_3f
-  - groupId: io.jenkins.blueocean
-    artifactId: blueocean
-    source:
-      version: 1.27.17
-  - groupId: org.jenkins-ci.plugins
-    artifactId: antisamy-markup-formatter
-    source:
-      version: 173.v680e3a_b_69ff3
-  - groupId: org.jenkins-ci.plugins
-    artifactId: build-timeout
-    source:
-      version: 1.37
-  - groupId: org.csanchez.jenkins.plugins
-    artifactId: kubernetes
-    source:
-      version: 4324.vfec199a_33512
-  - groupId: org.jenkins-ci.plugins
-    artifactId: generic-webhook-trigger
-    source:
-      version: 2.3.1
-  - groupId: org.jenkins-ci.plugins
-    artifactId: localization-zh-cn
-    source:
-      version: 371.v23851f835d6b_
-  - groupId: org.jenkinsci.plugins
-    artifactId: managed-scripts
-    source:
-      version: 1.5.6
-  - groupId: org.jenkins-ci.plugins
-    artifactId: pam-auth
-    source:
-      version: 1.12
-  - groupId: org.jenkins-ci.plugins
-    artifactId: javadoc
-    source:
-      version: 310.v032f3f16b_0f8
-  - groupId: org.jenkins-ci.plugins
-    artifactId: junit
-    source:
-      version: 1319.v000471ca_e5e2
-  - groupId: org.jenkins-ci.plugins
-    artifactId: ldap
-    source:
-      version: 780.vcb_33c9a_e4332
-  - groupId: org.jenkins-ci.plugins
-    artifactId: matrix-auth
-    source:
-      version: 3.2.6
-  - groupId: org.jenkins-ci.plugins
-    artifactId: role-strategy
-    source:
-      version: 756.v978cb_392eb_d3
-  - groupId: org.jenkins-ci.plugins
-    artifactId: sonar
-    source:
-      version: 2.18
-  - groupId: org.jenkins-ci.plugins
-    artifactId: mailer
-    source:
-      version: 489.vd4b_25144138f
-  - groupId: org.jenkins-ci.plugins
-    artifactId: parameterized-trigger
-    source:
-      version: 840.v3c7d4a_a_5e6c7
-  - groupId: org.jenkins-ci.plugins
-    artifactId: run-condition
-    source:
-      version: 243.v3c3f94e46a_8b_
-  - groupId: org.jenkins-ci.plugins
-    artifactId: subversion
-    source:
-      version: 1287.vd2d507146906
-  - groupId: org.jenkins-ci.plugins.pipeline-stage-view
-    artifactId: pipeline-stage-view
-    source:
-      version: 2.37
-  - groupId: org.jenkins-ci.plugins
-    artifactId: prometheus
-    source:
-      version: 819.v50953a_c560dd
-  - groupId: io.jenkins.plugins
-    artifactId: generic-event
-    source:
-      version: 45.v2ae6cdb521eb
-  - groupId: io.jenkins.plugins
-    artifactId: file-parameters
-    source:
-      version: 367.vc2cc39fb_b_593
-  - groupId: org.jenkins-ci.plugins
-    artifactId: support-core
-    source:
-      version: 1692.v61f53ff4a_63b_
-  - groupId: org.jenkins-ci.plugins
-    artifactId: docker-workflow
-    source:
-      version: 611.v16e84da_6d3ff
-  - groupId: io.jenkins.blueocean
-    artifactId: blueocean-executor-info
-    source:
-      version: 1.27.17
-  - groupId: org.jenkins-ci.plugins
-    artifactId: cloudbees-disk-usage-simple
-    source:
-      version: 239.v6a_f1a_c1c8046
-  - groupId: org.jenkins-ci.plugins
-    artifactId: conditional-buildstep
-    source:
-      version: 1.5.0
-  - groupId: org.jenkins-ci.plugins
-    artifactId: google-oauth-plugin
-    source:
-      version: 1.335.ve6de40e2db_18
-  - groupId: com.cloudbees.jenkins.plugins
-    artifactId: kubernetes-credentials-provider
-    source:
-      version: 1.276.v99a_de03cb_076
-  - groupId: org.jenkins-ci.main
-    artifactId: maven-plugin
-    source:
-      version: "3.25"
-  - groupId: org.jenkins-ci.tools
-    artifactId: git-parameter
-    source:
-      version: 460.v71e7583a_c099
+- groupId: io.jenkins
+  artifactId: configuration-as-code
+  source:
+    version: 2077.v41f1011a_5110
+- groupId: io.jenkins.blueocean
+  artifactId: blueocean
+  source:
+    version: 1.27.25
+- groupId: org.jenkins-ci.plugins
+  artifactId: antisamy-markup-formatter
+  source:
+    version: 173.v680e3a_b_69ff3
+- groupId: org.jenkins-ci.plugins
+  artifactId: build-timeout
+  source:
+    version: 1.40
+- groupId: org.csanchez.jenkins.plugins
+  artifactId: kubernetes
+  source:
+    version: 4423.vb_59f230b_ce53
+- groupId: org.jenkins-ci.plugins
+  artifactId: generic-webhook-trigger
+  source:
+    version: 2.4.1
+- groupId: org.jenkins-ci.plugins
+  artifactId: localization-zh-cn
+  source:
+    version: 371.v23851f835d6b_
+- groupId: org.jenkinsci.plugins
+  artifactId: managed-scripts
+  source:
+    version: 1.5.6
+- groupId: org.jenkins-ci.plugins
+  artifactId: pam-auth
+  source:
+    version: 1.12
+- groupId: org.jenkins-ci.plugins
+  artifactId: javadoc
+  source:
+    version: 354.vee1a_660b_4990
+- groupId: org.jenkins-ci.plugins
+  artifactId: junit
+  source:
+    version: 1403.vd9d1413fd205
+- groupId: org.jenkins-ci.plugins
+  artifactId: ldap
+  source:
+    version: 807.v7d7de30930cf
+- groupId: org.jenkins-ci.plugins
+  artifactId: matrix-auth
+  source:
+    version: 3.2.10
+- groupId: org.jenkins-ci.plugins
+  artifactId: role-strategy
+  source:
+    version: 848.va_a_ea_673cf0b_c
+- groupId: org.jenkins-ci.plugins
+  artifactId: sonar
+  source:
+    version: 2.18.2
+- groupId: org.jenkins-ci.plugins
+  artifactId: mailer
+  source:
+    version: 534.v1b_36f5864073
+- groupId: org.jenkins-ci.plugins
+  artifactId: parameterized-trigger
+  source:
+    version: 893.va_383a_9b_a_4c11
+- groupId: org.jenkins-ci.plugins
+  artifactId: run-condition
+  source:
+    version: 276.v97298f3a_cd51
+- groupId: org.jenkins-ci.plugins
+  artifactId: subversion
+  source:
+    version: 1303.vcfd9679fb_c12
+- groupId: org.jenkins-ci.plugins.pipeline-stage-view
+  artifactId: pipeline-stage-view
+  source:
+    version: 2.41
+- groupId: org.jenkins-ci.plugins
+  artifactId: prometheus
+  source:
+    version: 852.v317db_5d17a_b_0
+- groupId: io.jenkins.plugins
+  artifactId: generic-event
+  source:
+    version: 49.v8cdd8314e99d
+- groupId: io.jenkins.plugins
+  artifactId: file-parameters
+  source:
+    version: 425.v3fa_801681b_5e
+- groupId: org.jenkins-ci.plugins
+  artifactId: support-core
+  source:
+    version: 1801.v76b_389d2deec
+- groupId: org.jenkins-ci.plugins
+  artifactId: docker-workflow
+  source:
+    version: 634.vedc7242b_eda_7
+- groupId: io.jenkins.blueocean
+  artifactId: blueocean-executor-info
+  source:
+    version: 1.27.25
+- groupId: org.jenkins-ci.plugins
+  artifactId: cloudbees-disk-usage-simple
+  source:
+    version: 256.v20ec4eb_884f1
+- groupId: org.jenkins-ci.plugins
+  artifactId: conditional-buildstep
+  source:
+    version: 1.5.0
+- groupId: org.jenkins-ci.plugins
+  artifactId: google-oauth-plugin
+  source:
+    version: 1.346.v712b_a_e0d1e60
+- groupId: com.cloudbees.jenkins.plugins
+  artifactId: kubernetes-credentials-provider
+  source:
+    version: 1.303.vdfcf47fb_b_fef
+- groupId: org.jenkins-ci.main
+  artifactId: maven-plugin
+  source:
+    version: 3.27
+- groupId: org.jenkins-ci.tools
+  artifactId: git-parameter
+  source:
+    version: 462.vdcf3df2ed2ca_
 systemProperties:
-  { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
+  hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: 'true'
 groovyHooks:
-  - type: "init"
-    id: "bundle-plugins"
-    source:
-      dir: remove-bundle-plugins.groovy
+- type: init
+  id: bundle-plugins
+  source:
+    dir: remove-bundle-plugins.groovy

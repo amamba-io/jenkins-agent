@@ -1,5 +1,5 @@
 Master:
-  ImageTag: latest-2.502
+  ImageTag: latest-2.541.3
 
 Agent:
   Builder:

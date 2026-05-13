@@ -12,17 +12,17 @@ deny contains msg if {
 
 is_copy_default_config_image(container) if {
 	container.name == "copy-default-config"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.541.3"
 }
 
 is_copy_auth_plugin_image(container) if {
 	container.name == "copy-auth-plugin"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.541.3"
 }
 
 is_instrumentation_image(container) if {
 	container.name == "opentelemetry-auto-instrumentation"
-	container.image == "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:1.17.0"
+	container.image == "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.26.1"
 }
 
 deny contains msg if {
@@ -36,12 +36,12 @@ deny contains msg if {
 
 is_jenkins_image(container) if {
 	container.name == "jenkins"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.541.3"
 }
 
 is_event_proxy_image(container) if {
 	container.name == "event-proxy"
-	container.image == "release.daocloud.io/amamba/amamba-event-proxy:v0.18.0-alpha.0"
+	container.image == "release.daocloud.io/amamba/amamba-event-proxy:v0.40.0"
 }
 
 deny contains msg if {

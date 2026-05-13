@@ -19,7 +19,7 @@ jobs:
   build-jenkins:
     runs-on: ubuntu-24.04
     env:
-      JENKINS-VERSION: 2.502
+      JENKINS-VERSION: 2.541.3
       INBOUND-AGENT-VERSION: jdk21
     steps:
       - name: checkout
