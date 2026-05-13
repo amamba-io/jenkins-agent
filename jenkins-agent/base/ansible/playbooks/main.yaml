@@ -2,10 +2,10 @@
   hosts: localhost
   become: true
   vars:
-    docker_version: "27.1.2"
-    helm_version: "3.15.4"
-    argocd_cli_version: "v2.12.1"
-    argo_rollouts_cli_version: "v1.7.2"
+    docker_version: "29.4.3"
+    helm_version: "3.20.2"
+    argocd_cli_version: "v3.3.10"
+    argo_rollouts_cli_version: "v1.9.0"
     yq_version: "v4.44.3"
     jdk_11_version: "11.0.14.9.1"
     sonar_scanner_version: "4.8.0.2856"

@@ -12,12 +12,12 @@ deny contains msg if {
 
 is_copy_default_config_image(container) if {
 	container.name == "copy-default-config"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.541.3"
 }
 
 is_copy_auth_plugin_image(container) if {
 	container.name == "copy-auth-plugin"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.541.3"
 }
 
 is_instrumentation_image(container) if {
@@ -36,7 +36,7 @@ deny contains msg if {
 
 is_jenkins_image(container) if {
 	container.name == "jenkins"
-	container.image == "ghcr.io/amamba-io/jenkins:latest-2.502"
+	container.image == "ghcr.io/amamba-io/jenkins:latest-2.541.3"
 }
 
 is_event_proxy_image(container) if {

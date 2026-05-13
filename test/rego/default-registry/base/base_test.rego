@@ -46,11 +46,11 @@ test_default_deployments_image if {
 			"initContainers": [
 				{
 					"name": "copy-auth-plugin",
-					"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
+					"image": "ghcr.io/amamba-io/jenkins:latest-2.541.3",
 				},
 				{
 					"name": "copy-default-config",
-					"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
+					"image": "ghcr.io/amamba-io/jenkins:latest-2.541.3",
 				},
 				{
 					"name": "opentelemetry-auto-instrumentation",
@@ -60,7 +60,7 @@ test_default_deployments_image if {
 			"containers": [
 				{
 					"name": "jenkins",
-					"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
+					"image": "ghcr.io/amamba-io/jenkins:latest-2.541.3",
 				},
 				{
 					"name": "event-proxy",
@@ -79,11 +79,11 @@ test_cotainers_missing if {
 		"spec": {"template": {"spec": {
 			"initContainers": [{
 				"name": "copy-default-config",
-				"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
+				"image": "ghcr.io/amamba-io/jenkins:latest-2.541.3",
 			}],
 			"containers": [{
 				"name": "jenkins",
-				"image": "ghcr.io/amamba-io/jenkins:latest-2.502",
+				"image": "ghcr.io/amamba-io/jenkins:latest-2.541.3",
 			}],
 		}}},
 	}
