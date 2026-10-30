@@ -41,7 +41,7 @@ is_jenkins_image(container) if {
 
 is_event_proxy_image(container) if {
 	container.name == "event-proxy"
-	container.image == "release.daocloud.io/amamba/amamba-event-proxy:v0.40.0"
+	container.image == "release.daocloud.io/amamba/amamba-event-proxy:v0.42.0"
 }
 
 deny contains msg if {
