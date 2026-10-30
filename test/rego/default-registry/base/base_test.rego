@@ -64,7 +64,7 @@ test_default_deployments_image if {
 				},
 				{
 					"name": "event-proxy",
-					"image": "release.daocloud.io/amamba/amamba-event-proxy:v0.18.0-alpha.0",
+					"image": "release.daocloud.io/amamba/amamba-event-proxy:v0.42.0",
 				},
 			],
 		}}},

@@ -461,7 +461,7 @@ eventProxy:
   image:
     registry: release.daocloud.io
     repository: amamba/amamba-event-proxy
-    tag: "v0.40.0"
+    tag: "v0.42.0"
   imagePullPolicy: IfNotPresent
   configMap:
     eventProxy:
