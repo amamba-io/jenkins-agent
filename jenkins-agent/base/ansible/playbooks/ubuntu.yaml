@@ -21,3 +21,16 @@
       - gettext
       - tree
     state: present
+
+# https://gitlab.daocloud.cn/ndx/amamba/-/work_items/3453
+# build-essential pulls in kernel headers; keep them patched in derived images too.
+- name: Upgrade Linux userspace headers
+  apt:
+    name: linux-libc-dev
+    state: latest
+
+- name: Check Linux userspace headers security baseline
+  shell: |
+    version=$(dpkg-query -W -f='${Version}' linux-libc-dev)
+    dpkg --compare-versions "$version" ge 6.8.0-147.147
+  changed_when: false
