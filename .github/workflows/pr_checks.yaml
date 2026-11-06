@@ -1,0 +1,63 @@
+name: PR Checks
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  static:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: azure/setup-helm@v3
+        with:
+          version: v3.12.1
+      - name: Install validation tools
+        run: |
+          pip install pyyaml jinja2
+          wget -q https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -O /tmp/yq
+          sudo install /tmp/yq /usr/local/bin/yq
+          wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.56.0/conftest_0.56.0_Linux_x86_64.tar.gz -O /tmp/conftest.tar.gz
+          tar -xzf /tmp/conftest.tar.gz -C /tmp conftest
+          sudo install /tmp/conftest /usr/local/bin/conftest
+      - name: Check generated versions
+        run: |
+          make update-agents-version
+          git diff --exit-code HEAD
+      - name: Validate charts
+        run: |
+          make lint
+          OUTPUT=github make conftest
+          make check_casc_config
+  smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pyyaml
+      - name: Build affected images and check tools
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python hack/ci/pr_smoke.py
+  result:
+    name: PR Checks
+    if: ${{ always() }}
+    needs: [static, smoke]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require successful checks
+        env:
+          STATIC: ${{ needs.static.result }}
+          SMOKE: ${{ needs.smoke.result }}
+        run: test "$STATIC" = success && test "$SMOKE" = success
