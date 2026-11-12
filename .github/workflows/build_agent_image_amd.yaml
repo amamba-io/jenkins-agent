@@ -11,6 +11,11 @@ on:
         required: false
         type: boolean
         default: false
+      base_os:
+        description: 'Base distribution (CentOS is only used by the manual legacy workflow)'
+        required: false
+        type: string
+        default: ubuntu
       build_agent_nodejs:
         description: 'Build Agent Nodejs'
         required: false
@@ -56,7 +61,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["centos", "ubuntu"]
+        os: ["${{ inputs.base_os }}"]
     steps:
       - name: checkout
         uses: actions/checkout@v4
