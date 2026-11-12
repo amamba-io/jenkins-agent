@@ -1,14 +1,80 @@
-name: Build Jenkins Agent Of CentOS (Deprecated Images)
+name: Build CentOS Agents (Manual Only)
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       container_tag:
-        description: 'Container Tag'
+        description: 'Legacy image tag for this upgrade build (for example v0.7.1-legacy)'
         required: true
         type: string
 
+permissions:
+  contents: read
+  packages: write
+
+# Derived legacy images use the CentOS base latest aliases; serialize rebuilds.
+concurrency:
+  group: centos-agents-manual
+  cancel-in-progress: false
+
 jobs:
+  validate-inputs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate image tag
+        env:
+          CONTAINER_TAG: ${{ inputs.container_tag }}
+        run: |
+          if [[ ! "$CONTAINER_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ || "$CONTAINER_TAG" == latest ]]; then
+            echo "Provide a valid image tag other than latest."
+            exit 1
+          fi
+  build-centos-base-amd:
+    needs: [validate-inputs]
+    uses: ./.github/workflows/build_agent_image_amd.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ inputs.container_tag }}
+      build_agent_base: true
+      base_os: centos
+  build-centos-base-arm:
+    needs: [validate-inputs]
+    uses: ./.github/workflows/build_agent_image_arm.yaml
+    secrets: inherit
+    with:
+      container_tag: ${{ inputs.container_tag }}
+      build_agent_base: true
+      base_os: centos
+  push-centos-base-manifest:
+    needs: [build-centos-base-amd, build-centos-base-arm]
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        runtime: [docker, podman]
+    steps:
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish CentOS base manifests
+        env:
+          CONTAINER_TAG: ${{ inputs.container_tag }}
+          REGISTRY_REPO: ghcr.io/${{ github.repository_owner }}
+          RUNTIME: ${{ matrix.runtime }}
+        run: |
+          runtime_suffix=""
+          if [[ "$RUNTIME" == podman ]]; then
+            runtime_suffix="-podman"
+          fi
+          for tag in "$CONTAINER_TAG" latest; do
+            image="${REGISTRY_REPO}/jenkins-agent-base:${tag}${runtime_suffix}"
+            docker manifest create "$image" "${image}-amd64" "${image}-arm64"
+            docker manifest push "$image"
+            skopeo copy -f oci --multi-arch all --retry-times 3 "docker://${image}" "docker://${image}"
+          done
   build-agent-nodejs-amd:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]
@@ -57,6 +123,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-agent-nodejs-arm:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]
@@ -144,6 +211,7 @@ jobs:
           skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
 
   build-agent-python-amd:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]
@@ -191,6 +259,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-python-arm:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]
@@ -278,6 +347,7 @@ jobs:
           skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
 
   build-agent-go-amd:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]
@@ -325,6 +395,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-go-arm:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]
@@ -411,6 +482,7 @@ jobs:
           skopeo inspect docker://${commitImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${commitImg} is not in oci format" ; exit 1 ;}
           skopeo inspect docker://${latestImg} | jq ".LayersData[0].MIMEType" | grep "oci" || { echo "Error: ${latestImg} is not in oci format" ; exit 1 ;}
   build-agent-maven-amd:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]
@@ -465,6 +537,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-maven-arm:
+    needs: [push-centos-base-manifest]
     strategy:
       matrix:
         runtime: [ docker, podman ]

@@ -75,31 +75,17 @@ function process_builder() {
     local image="{{ .Agent.Builder.$builder_name.Image }}"
     local versions=($(yq eval ".Agent.Builder.$builder_name.Versions[]" "$chart_values_path"))
     local runtime=("docker" "podman")
-    local os=("centos" "ubuntu")
-    for os_type in "${os[@]}"; do
-        for rt in "${runtime[@]}"; do
-            for version in "${versions[@]}"; do
-              relok8sPlaceholder="{{ .Agent.relok8sPlaceholder }}"
-                suffix=""
-                if [ "$os_type" == "ubuntu" ]; then
-                    suffix=$suffix"-ubuntu"
-                fi
-                if [ "$rt" == "podman" ]; then
-                    suffix=$suffix"-podman"
-                fi
-                entry="- \"{{ .image.registry }}/$image:$relok8sPlaceholder$version$suffix\""
-                if [ "$os_type" == "centos" ]; then
-                  if [ "$builder_name" == "Golang" ] && [[ "$version" =~ "1.17.13" ]]; then
-                     if ! grep -F "$image:$relok8sPlaceholder$version$suffix" "$relok8s_file"; then
-                        echo "$entry" >> "$relok8s_file"
-                     fi
-                  fi
-                else
-                    if ! grep -F "$image:$relok8sPlaceholder$version$suffix" "$relok8s_file"; then
-                        echo "$entry" >> "$relok8s_file"
-                    fi
-                fi
-            done
+    for rt in "${runtime[@]}"; do
+        for version in "${versions[@]}"; do
+            relok8sPlaceholder="{{ .Agent.relok8sPlaceholder }}"
+            suffix="-ubuntu"
+            if [ "$rt" == "podman" ]; then
+                suffix=$suffix"-podman"
+            fi
+            entry="- \"{{ .image.registry }}/$image:$relok8sPlaceholder$version$suffix\""
+            if ! grep -F "$image:$relok8sPlaceholder$version$suffix" "$relok8s_file"; then
+                echo "$entry" >> "$relok8s_file"
+            fi
         done
     done
 }

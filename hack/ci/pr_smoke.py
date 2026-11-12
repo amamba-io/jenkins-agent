@@ -9,6 +9,10 @@ def run(*args):
 
 
 def select(paths):
+    # Legacy CentOS sources are retained for manual builds only.
+    paths = [p for p in paths if p not in ('jenkins-agent/base/Dockerfile.centos',
+                                          'jenkins-agent/base/ansible/playbooks/centos.yaml') and
+             not p.startswith('jenkins-agent/base/ansible/playbooks/tasks/centos/')]
     all_agents = any(p.startswith(('jenkins-agent/base/', 'tools/', 'hack/ci/')) or
                      p in ('go.mod', 'go.sum', 'version.yaml', '.github/workflows/pr_checks.yaml',
                            'test/e2e/check_agent_base_tools.sh', 'test/e2e/check_agent_software_tools.sh') or
@@ -30,26 +34,15 @@ def main():
         for key, value in kwargs.items():
             args += ['--build-arg', f'{key}={value}']
         run(*args, '.')
-    def check(image, kind, matrix=None, podman=False):
+    def check(image, kind, matrix=None):
         script = 'check_agent_base_tools.sh' if kind == 'base' else 'check_agent_software_tools.sh'
-        args = ['docker', 'run', '--rm',
+        args = ['docker', 'run', '--rm', '-v', '/var/run/docker.sock:/var/run/docker.sock',
                 '-v', f'{os.getcwd()}/test/e2e/{script}:/tmp/{script}:ro',
                 '-v', f'{os.getcwd()}/test/fixture/image-check/{kind}-agent:/tmp/{kind}-agent',
                 '-e', f'AGENT_IMAGE={image}']
-        if podman:
-            args += ['--privileged']
-        else:
-            args += ['-v', '/var/run/docker.sock:/var/run/docker.sock']
         if matrix:
             args += ['-e', f'SOFTWARE_MATRIX={matrix}']
         run(*args, image, '/bin/bash', f'/tmp/{script}')
-    if any(p == 'jenkins-agent/base/podman/Dockerfile' or
-           p.startswith('jenkins-agent/base/ansible/playbooks/tasks/centos/') for p in paths):
-        build('jenkins-agent/base/Dockerfile.centos', 'pr-local/jenkins-agent-base:latest-amd64')
-        image = 'pr-local/jenkins-agent-base:centos-podman-smoke'
-        build('jenkins-agent/base/podman/Dockerfile', image, REGISTRY_REPO='pr-local',
-              DISTRIBUTION='centos', DISTRIBUTION_SUFFIX='', ARCH_SUFFIX='-amd64')
-        check(image, 'base', podman=True)
     if base or agents:
         image = 'pr-local/jenkins-agent-base:latest-ubuntu-amd64'
         build('jenkins-agent/base/Dockerfile.ubuntu', image)
