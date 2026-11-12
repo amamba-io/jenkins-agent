@@ -1,14 +1,17 @@
 - name: Install Podman
   shell: |
+    set -eu
     ARCH=$(uname -m)
     if [[ ${ARCH} == 'x86_64' ]]; then
-      curl -L -o /etc/yum.repos.d/home:alvistack.repo https://download.opensuse.org/repositories/home:alvistack/CentOS_7/home:alvistack.repo
+      curl -fL -o /etc/yum.repos.d/home:alvistack.repo https://download.opensuse.org/repositories/home:alvistack/CentOS_7/home:alvistack.repo
     elif [[ ${ARCH} == 'aarch64' ]]; then
-      curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_7/devel:kubic:libcontainers:stable.repo
+      curl -fL -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_7/devel:kubic:libcontainers:stable.repo
+    else
+      echo "Unsupported Podman architecture: ${ARCH}" >&2
+      exit 1
     fi
-    yum update -y
-    yum -y install podman fuse-overlayfs podman-netavark 
-    rm -rf /usr/bin/docker 
+    yum -y --setopt=skip_missing_names_on_install=False install podman fuse-overlayfs
+    rm -rf /usr/bin/docker
     rm -rf /usr/local/bin/docker
     ln -s /usr/bin/podman /usr/bin/docker
     yum -y clean all --enablerepo='*'
@@ -18,7 +21,11 @@
 
 - name: Validate podman installation
   shell: |
+    set -eu
     podman --version
     docker --version
-    ls /bin | grep docker
+    /usr/local/libexec/podman/netavark --version
+    /usr/local/libexec/podman/aardvark-dns --version
+    test -L /usr/bin/docker
   when: install_podman is defined and install_podman | bool
+  changed_when: false
