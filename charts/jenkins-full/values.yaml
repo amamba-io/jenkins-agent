@@ -350,7 +350,7 @@ Master:
 Agent:
   Enabled: true
   Image: "amamba-io/inbound-agent"
-  ImageTag: jdk21
+  ImageTag: 3395.v6e5377b_0fb_3c-5-jdk21
   CustomJenkinsLabels: []
   Component: "jenkins-inbound-agent"
   Privileged: false

@@ -21,14 +21,21 @@ def select(paths):
         p.startswith((f'jenkins-agent/{a}/', f'test/fixture/image-check/{a}-agent/')) for p in paths)]
     jenkins = any(p in ('Dockerfile', 'formula.yaml', 'remove-bundle-plugins.groovy',
                        '.github/workflows/pr_checks.yaml') or p.startswith('hack/ci/') for p in paths)
-    return all_agents, agents, jenkins
+    inbound = any(p in ('Dockerfile', 'formula.yaml', 'formula.core.yaml',
+                        'remove-bundle-plugins.groovy',
+                        '.github/workflows/build_jenkins.yaml',
+                        '.github/workflows/pr_checks.yaml', 'hack/ci/pr_smoke.py',
+                        'test/e2e/check_inbound_agent.sh',
+                        'test/e2e/check_inbound_agent_compatibility.py') for p in paths)
+    jenkins = jenkins or inbound
+    return all_agents, agents, jenkins, inbound
 
 
 def main():
     paths = subprocess.check_output(['git', 'diff', '--name-only', '-z',
                                     os.environ['BASE_SHA'] + '...' + os.environ['HEAD_SHA']], text=True).split('\0')
-    base, agents, jenkins = select(paths)
-    print(f'Base: {base or bool(agents)}; agents: {agents}; Jenkins: {jenkins}', flush=True)
+    base, agents, jenkins, inbound = select(paths)
+    print(f'Base: {base or bool(agents)}; agents: {agents}; Jenkins: {jenkins}; inbound: {inbound}', flush=True)
     def build(file, tag, **kwargs):
         args = ['docker', 'build', '--platform', 'linux/amd64', '-f', file, '-t', tag]
         for key, value in kwargs.items():
@@ -58,6 +65,18 @@ def main():
         check(image, agent, f'{"java" if agent == "maven" else agent}-{version}')
     if jenkins:
         build('Dockerfile', 'pr-local/jenkins:smoke')
+    if inbound:
+        with open('.github/workflows/build_jenkins.yaml') as stream:
+            workflow = yaml.safe_load(stream)
+        version = workflow['jobs']['build-jenkins']['env']['INBOUND-AGENT-VERSION']
+        image = f'docker.io/jenkins/inbound-agent:{version}'
+        run('docker', 'pull', '--platform', 'linux/amd64', image)
+        run('docker', 'run', '--rm', '--platform', 'linux/amd64', '--entrypoint', '/bin/bash',
+            '-v', f'{os.getcwd()}/test/e2e/check_inbound_agent.sh:/tmp/check_inbound_agent.sh:ro',
+            image, '/tmp/check_inbound_agent.sh')
+        run('docker', 'run', '--rm', '--platform', 'linux/amd64', image, '-version')
+        run('python', 'test/e2e/check_inbound_agent_compatibility.py',
+            '--controller', 'pr-local/jenkins:smoke', '--agent', image)
 
 
 if __name__ == '__main__':

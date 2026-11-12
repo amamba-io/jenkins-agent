@@ -58,3 +58,29 @@ When upgrading an installation that still selects CentOS agents, explicitly use
 an existing compatible image tag or manually rebuild the required release tag.
 CentOS images are excluded from new Relok8s bundles and must be staged separately
 for offline upgrades. Prefer Ubuntu agents for maintained installations.
+
+## Inbound agent updates
+
+The JNLP agent uses the official `jenkins/inbound-agent:3395.v6e5377b_0fb_3c-5-jdk21` image.
+The release workflow checks the upstream AMD64 and ARM64 images, then mirrors
+the complete multi-architecture image to GHCR under the same version tag and
+the legacy `jdk21` alias. The charts select the versioned tag to avoid reusing
+a cached floating tag. No downstream inbound Dockerfile or package rebuild is used.
+
+To upgrade, update `INBOUND-AGENT-VERSION` in `.github/workflows/build_jenkins.yaml`,
+`Agent.ImageTag` in both chart values, and the matching Rego fixtures/policies.
+The inbound smoke check requires the four Perl packages from GitLab #3452 to be
+at least `5.40.1-6+deb13u1` and verifies the upstream user and Remoting runtime.
+
+Inbound upgrades must be checked against the controller and Kubernetes plugin
+versions in `formula.yaml`. Changes to any of these components trigger an AMD64
+compatibility smoke test using the built controller image and official agent:
+the plugin must load, its Jenkins core requirement must be met, and its generated
+JNLP settings must support TCP and WebSocket connections plus a Pipeline shell task.
+This checks Remoting and plugin integration without provisioning a real Kubernetes Pod.
+
+The checked combination is Jenkins 2.541.3, Kubernetes plugin
+4423.vb_59f230b_ce53, and the official agent above (Remoting 3395.v6e5377b_0fb_3c,
+JDK 21). Controller/plugin upgrades should be included when compatibility
+requirements or these checks require them. OS security fixes can use an upstream
+agent rebuild without forcing a controller/plugin upgrade when the combination passes.
