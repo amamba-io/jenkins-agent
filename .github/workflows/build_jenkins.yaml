@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       JENKINS-VERSION: 2.541.3
-      INBOUND-AGENT-VERSION: jdk21
+      INBOUND-AGENT-VERSION: 3395.v6e5377b_0fb_3c-5-jdk21
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -34,8 +34,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: sync jnlp image
-        run: skopeo copy -f oci --multi-arch all docker://docker.io/jenkins/inbound-agent:${{ env.INBOUND-AGENT-VERSION }} docker://ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ env.INBOUND-AGENT-VERSION }}
+      - name: Check official inbound agent on supported platforms
+        env:
+          INBOUND_IMAGE: docker.io/jenkins/inbound-agent:${{ env.INBOUND-AGENT-VERSION }}
+        run: |
+          for platform in linux/amd64 linux/arm64; do
+            docker pull --platform "$platform" "$INBOUND_IMAGE"
+            docker run --rm --platform "$platform" --entrypoint /bin/bash \
+              -v "$PWD/test/e2e/check_inbound_agent.sh:/tmp/check_inbound_agent.sh:ro" \
+              "$INBOUND_IMAGE" /tmp/check_inbound_agent.sh
+            docker run --rm --platform "$platform" "$INBOUND_IMAGE" -version
+          done
+      - name: Sync official inbound agent
+        run: |
+          skopeo copy -f oci --multi-arch all --retry-times 3 docker://docker.io/jenkins/inbound-agent:${{ env.INBOUND-AGENT-VERSION }} docker://ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ env.INBOUND-AGENT-VERSION }}
+          skopeo copy -f oci --multi-arch all --retry-times 3 docker://ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ env.INBOUND-AGENT-VERSION }} docker://ghcr.io/${{ github.repository_owner }}/inbound-agent:jdk21
       - name: build jenkins
         uses: docker/build-push-action@v6
         with:

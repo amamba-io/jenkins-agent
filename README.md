@@ -58,3 +58,16 @@ When upgrading an installation that still selects CentOS agents, explicitly use
 an existing compatible image tag or manually rebuild the required release tag.
 CentOS images are excluded from new Relok8s bundles and must be staged separately
 for offline upgrades. Prefer Ubuntu agents for maintained installations.
+
+## Inbound agent updates
+
+The JNLP agent uses the official `jenkins/inbound-agent:3395.v6e5377b_0fb_3c-5-jdk21` image.
+The release workflow checks the upstream AMD64 and ARM64 images, then mirrors
+the complete multi-architecture image to GHCR under the same version tag and
+the legacy `jdk21` alias. The charts select the versioned tag to avoid reusing
+a cached floating tag. No downstream inbound Dockerfile or package rebuild is used.
+
+To upgrade, update `INBOUND-AGENT-VERSION` in `.github/workflows/build_jenkins.yaml`,
+`Agent.ImageTag` in both chart values, and the matching Rego fixtures/policies.
+The inbound smoke check requires the four Perl packages from GitLab #3452 to be
+at least `5.40.1-6+deb13u1` and verifies the upstream user and Remoting runtime.
