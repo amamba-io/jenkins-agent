@@ -21,9 +21,13 @@ def select(paths):
         p.startswith((f'jenkins-agent/{a}/', f'test/fixture/image-check/{a}-agent/')) for p in paths)]
     jenkins = any(p in ('Dockerfile', 'formula.yaml', 'remove-bundle-plugins.groovy',
                        '.github/workflows/pr_checks.yaml') or p.startswith('hack/ci/') for p in paths)
-    inbound = any(p in ('.github/workflows/build_jenkins.yaml',
+    inbound = any(p in ('Dockerfile', 'formula.yaml', 'formula.core.yaml',
+                        'remove-bundle-plugins.groovy',
+                        '.github/workflows/build_jenkins.yaml',
                         '.github/workflows/pr_checks.yaml', 'hack/ci/pr_smoke.py',
-                        'test/e2e/check_inbound_agent.sh') for p in paths)
+                        'test/e2e/check_inbound_agent.sh',
+                        'test/e2e/check_inbound_agent_compatibility.py') for p in paths)
+    jenkins = jenkins or inbound
     return all_agents, agents, jenkins, inbound
 
 
@@ -71,6 +75,8 @@ def main():
             '-v', f'{os.getcwd()}/test/e2e/check_inbound_agent.sh:/tmp/check_inbound_agent.sh:ro',
             image, '/tmp/check_inbound_agent.sh')
         run('docker', 'run', '--rm', '--platform', 'linux/amd64', image, '-version')
+        run('python', 'test/e2e/check_inbound_agent_compatibility.py',
+            '--controller', 'pr-local/jenkins:smoke', '--agent', image)
 
 
 if __name__ == '__main__':
