@@ -1,3 +1,4 @@
+ARG HELM_PUSH_BUILDER=golang:1.26.11
 FROM --platform=$BUILDPLATFORM golang:1.22.2 AS build
 
 ENV GO111MODULE=on
@@ -6,6 +7,15 @@ COPY ./tools ./tools
 COPY go.mod go.sum ./
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o docker-build ./tools/docker-build
+
+FROM --platform=$BUILDPLATFORM ${HELM_PUSH_BUILDER} AS helm-push
+ARG TARGETARCH
+WORKDIR /src
+COPY tools/helm-push/go.mod tools/helm-push/go.sum ./
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -mod=readonly -trimpath \
+    -ldflags="-s -w" -o /helm-cm-push github.com/chartmuseum/helm-push/cmd/helm-cm-push && \
+    go version -m /helm-cm-push | grep -E 'dep[[:space:]]+google.golang.org/grpc[[:space:]]+v1\.79\.3[[:space:]]'
 
 FROM ubuntu:24.04
 
@@ -16,6 +26,7 @@ ENV PATH=/opt/sonar-scanner/bin:$PATH
 ENV PATH=$PATH:/root/.local/bin
 
 COPY jenkins-agent/base/ ./
+COPY --from=helm-push /helm-cm-push /helm-push/bin/helm-cm-push
 
 RUN apt-get update && \
     apt-get install -y software-properties-common pipx && \

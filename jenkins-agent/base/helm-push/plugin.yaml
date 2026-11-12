@@ -1,0 +1,9 @@
+name: cm-push
+version: "0.11.1"
+usage: Push chart packages to ChartMuseum
+description: Helm push plugin rebuilt with patched gRPC dependencies
+command: "$HELM_PLUGIN_DIR/bin/helm-cm-push"
+downloaders:
+  - command: bin/helm-cm-push
+    protocols:
+      - cm

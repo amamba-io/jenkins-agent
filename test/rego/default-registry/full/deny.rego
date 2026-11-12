@@ -81,7 +81,7 @@ deny contains msg if {
 
 is_jnlp_image(container) if {
 	container.name == "jnlp"
-	container.image == "ghcr.io/amamba-io/inbound-agent:jdk21"
+	container.image == "ghcr.io/amamba-io/inbound-agent:latest-jdk21"
 }
 
 is_agent_image(container) if {
