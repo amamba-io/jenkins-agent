@@ -28,9 +28,6 @@ def main():
     paths = subprocess.check_output(['git', 'diff', '--name-only', '-z',
                                     os.environ['BASE_SHA'] + '...' + os.environ['HEAD_SHA']], text=True).split('\0')
     base, agents, jenkins = select(paths)
-    inbound = any(p.startswith('jenkins-agent/inbound/') or p in (
-        '.github/workflows/build_jenkins.yaml', 'test/e2e/check_inbound_agent.sh',
-        '.github/workflows/pr_checks.yaml') or p.startswith('hack/ci/') for p in paths)
     print(f'Base: {base or bool(agents)}; agents: {agents}; Jenkins: {jenkins}', flush=True)
     def build(file, tag, **kwargs):
         args = ['docker', 'build', '--platform', 'linux/amd64', '-f', file, '-t', tag]
@@ -46,12 +43,6 @@ def main():
         if matrix:
             args += ['-e', f'SOFTWARE_MATRIX={matrix}']
         run(*args, image, '/bin/bash', f'/tmp/{script}')
-    if inbound:
-        image = 'pr-local/inbound-agent:smoke'
-        build('jenkins-agent/inbound/Dockerfile', image)
-        run('docker', 'run', '--rm', '--entrypoint', '/bin/bash', '-v',
-            f'{os.getcwd()}/test/e2e/check_inbound_agent.sh:/tmp/check_inbound_agent.sh:ro',
-            image, '/tmp/check_inbound_agent.sh')
     if base or agents:
         image = 'pr-local/jenkins-agent-base:latest-ubuntu-amd64'
         build('jenkins-agent/base/Dockerfile.ubuntu', image)

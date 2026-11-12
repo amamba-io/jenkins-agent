@@ -34,29 +34,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build patched inbound agent
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./jenkins-agent/inbound/Dockerfile
-          pull: true
-          push: true
-          provenance: false
-          platforms: ${{ inputs.platforms }}
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ env.INBOUND-AGENT-VERSION }}
-            ghcr.io/${{ github.repository_owner }}/inbound-agent:latest-${{ env.INBOUND-AGENT-VERSION }}
-            ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ inputs.container_tag }}-${{ env.INBOUND-AGENT-VERSION }}
-          build-args: |
-            INBOUND_AGENT_IMAGE=jenkins/inbound-agent:${{ env.INBOUND-AGENT-VERSION }}
-          cache-from: type=gha,scope=inbound-agent
-          cache-to: type=gha,scope=inbound-agent,mode=max
-      - name: Check inbound agent
-        run: |
-          docker run --rm --entrypoint /bin/bash \
-            -v "$PWD/test/e2e/check_inbound_agent.sh:/tmp/check_inbound_agent.sh:ro" \
-            ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ inputs.container_tag }}-${{ env.INBOUND-AGENT-VERSION }} \
-            /tmp/check_inbound_agent.sh
+      - name: sync jnlp image
+        run: skopeo copy -f oci --multi-arch all docker://docker.io/jenkins/inbound-agent:${{ env.INBOUND-AGENT-VERSION }} docker://ghcr.io/${{ github.repository_owner }}/inbound-agent:${{ env.INBOUND-AGENT-VERSION }}
       - name: build jenkins
         uses: docker/build-push-action@v6
         with:
@@ -73,10 +52,6 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Convert Image to OCI Format
         run: |
-          for tag in '${{ env.INBOUND-AGENT-VERSION }}' 'latest-${{ env.INBOUND-AGENT-VERSION }}' '${{ inputs.container_tag }}-${{ env.INBOUND-AGENT-VERSION }}'; do
-            image="ghcr.io/${{ github.repository_owner }}/inbound-agent:${tag}"
-            skopeo copy -f oci --multi-arch all --retry-times 3 "docker://${image}" "docker://${image}"
-          done
           skopeo copy -f oci  --multi-arch all --retry-times 3 docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-${{ env.JENKINS-VERSION }} docker://ghcr.io/${{ github.repository_owner }}/jenkins:${{ inputs.container_tag }}-${{ env.JENKINS-VERSION }}
           skopeo copy -f oci  --multi-arch all --retry-times 3 docker://ghcr.io/${{ github.repository_owner }}/jenkins:latest docker://ghcr.io/${{ github.repository_owner }}/jenkins:latest
           

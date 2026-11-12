@@ -31,16 +31,9 @@
 
 - name: Install Helm Plugins
   shell: |
-    helm plugin install /helm-push &&
+    helm plugin install https://github.com/chartmuseum/helm-push.git &&  
     helm cm-push --help
-  when: required is defined and required | bool and distribution == "ubuntu"
-
-# CentOS is retained for best-effort manual builds only.
-- name: Install legacy CentOS Helm Plugins
-  shell: |
-    helm plugin install https://github.com/chartmuseum/helm-push.git &&
-    helm cm-push --help
-  when: required is defined and required | bool and distribution == "centos"
+  when: required is defined and required | bool
 
 - name: Install Kubectl
   shell: |

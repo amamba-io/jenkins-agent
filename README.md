@@ -26,20 +26,6 @@ matrix, deployment and Relok8s validation after merging to `main`, on release ta
 and through **Actions → Build Images → Run workflow**.
 Configure branch protection to require **PR Checks**, replacing old build job checks.
 
-## Security-patched agent dependencies
-
-Ubuntu agents use a locally built Helm push plugin with pinned, patched gRPC
-dependencies; see [tools/helm-push](tools/helm-push/README.md). Base-image updates
-must be followed by rebuilds of the language and Podman images that inherit them.
-
-Inbound agents are rebuilt from the upstream JDK 21 image with Debian Perl
-security updates and a minimum package-version check. The regular workflow
-publishes `<container_tag>-jdk21`, `latest-jdk21`, and the compatibility alias
-`jdk21`. Charts default to `latest-jdk21`, which release packaging replaces with
-the release-specific tag so an upgrade selects a new image rather than reusing
-a cached `jdk21` image. Existing installations that explicitly keep `jdk21`
-must refresh that image when applying security updates.
-
 ## CentOS agents: manual builds only
 
 CentOS-based agents are no longer maintained. PR checks, main-branch builds,
